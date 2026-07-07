@@ -6,8 +6,8 @@
 <meta name="robots" content="noindex, nofollow">
 <!--
   Content-Security-Policy (S&C hardening)
-  connect-src ครอบคลุม Cloudinary + โฮสต์ webhook ของ Power Automate ที่พบบ่อย
-  ▸ ถ้า URL flow ของคุณอยู่โดเมนอื่น ให้เพิ่มลงใน connect-src ด้วย ไม่งั้น browser จะบล็อกเงียบๆ
+  connect-src ครอบคลุม Cloudinary + Cloudflare Workers (*.workers.dev) + โฮสต์ webhook ของ Power Automate ที่พบบ่อย
+  ▸ ถ้า Worker ของคุณใช้ custom domain หรือ URL flow อยู่โดเมนอื่น ให้เพิ่มลงใน connect-src ด้วย ไม่งั้น browser จะบล็อกเงียบๆ
 -->
 <meta http-equiv="Content-Security-Policy" content="
   default-src 'self';
@@ -15,7 +15,7 @@
   style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
   font-src https://fonts.gstatic.com;
   img-src 'self' data: blob: https://res.cloudinary.com;
-  connect-src 'self' https://api.cloudinary.com https://res.cloudinary.com https://*.logic.azure.com https://*.azure-apihub.net https://*.azurewebsites.net;
+  connect-src 'self' https://api.cloudinary.com https://res.cloudinary.com https://*.workers.dev https://*.logic.azure.com https://*.azure-apihub.net https://*.azurewebsites.net;
   base-uri 'self';
   form-action 'self';
 ">
@@ -623,6 +623,16 @@ function sanitize(v, max = 200){
 }
 
 /* ============================================================================
+   วันที่ "วันนี้" ตามเวลาท้องถิ่นของเครื่องผู้ใช้
+   (ห้ามใช้ toISOString — มันให้วันที่ UTC ทำให้ช่วงเที่ยงคืน–07:00 เวลาไทย
+    ค่าเริ่มต้นกลายเป็นวันที่เมื่อวาน)
+   ============================================================================ */
+function todayLocal(){
+  const d = new Date(), p = n => String(n).padStart(2,"0");
+  return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())}`;
+}
+
+/* ============================================================================
    INIT
    ============================================================================ */
 function init(){
@@ -630,7 +640,7 @@ function init(){
   const sel = $("site");
   CONFIG.sites.forEach(s => { const o=document.createElement("option"); o.value=s; o.textContent=s; sel.appendChild(o); });
   // default date = today
-  $("testDate").value = new Date().toISOString().slice(0,10);
+  $("testDate").value = todayLocal();
   $("verLabel").textContent = "v" + CONFIG.appVersion;
 
   applyTheme(); applyLang(); newCaseId();
@@ -1017,7 +1027,7 @@ function clearForm(){
   ["site","testDate","fullName","company","plate","result1","time1","result2","time2","reporter"].forEach(clearErr);
   $("err_ptype").classList.remove("show"); $("err_photo").classList.remove("show");
   $("plateField").classList.remove("show");
-  $("testDate").value=new Date().toISOString().slice(0,10);
+  $("testDate").value=todayLocal();
   clearDraft(); newCaseId();
 }
 function resetAll(){

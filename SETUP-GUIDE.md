@@ -65,6 +65,7 @@ wrangler deploy
 ```
 - แก้ `ALLOWED_ORIGINS` ใน `worker.js` เป็นโดเมน Pages ของคุณ
 - เอา **URL ของ Worker** → `admin.html` ช่อง Webhook, และตั้ง Token = `CLIENT_TOKEN`
+- ⚠️ **CSP:** ฟอร์มอนุญาต `https://*.workers.dev` ใน `connect-src` ให้แล้ว — ถ้า Worker ใช้ **custom domain** ต้องเพิ่มโดเมนนั้นใน `<meta http-equiv="Content-Security-Policy">` ของ `alcohol-report.html` ด้วย ไม่งั้น browser จะบล็อกการส่งเงียบๆ
 
 ### ขั้น E — ประกอบฟอร์ม + Deploy
 - `admin.html` → **สร้าง CONFIG block** → วางแทน `const CONFIG = {…}` ใน `alcohol-report.html`

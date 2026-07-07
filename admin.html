@@ -413,7 +413,12 @@ async function copyText(txt){ try{ await navigator.clipboard.writeText(txt); toa
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 function validEmails(str){ if(!str) return false; return str.split(";").map(s=>s.trim()).filter(Boolean).every(e=>EMAIL_RE.test(e)); }
 function esc(s){ return String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
-function csvCell(v){ v=String(v==null?"":v); return /[",\n;]/.test(v) ? '"'+v.replace(/"/g,'""')+'"' : v; }
+function csvCell(v){
+  v=String(v==null?"":v);
+  // กัน CSV formula injection — ค่าที่ขึ้นต้นด้วย = + - @ หรือ tab จะถูก Excel ตีความเป็นสูตร
+  if(/^[=+\-@\t\r]/.test(v)) v="'"+v;
+  return /[",\n;]/.test(v) ? '"'+v.replace(/"/g,'""')+'"' : v;
+}
 
 /* ============================================================================
    LOGIN

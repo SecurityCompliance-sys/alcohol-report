@@ -25,6 +25,23 @@ const ALLOWED_ORIGINS = [
 ];
 const MAX_BYTES = 20000; // กันยิง payload ใหญ่ผิดปกติ
 
+// ฟิลด์ที่อนุญาตให้ forward + ความยาวสูงสุดต่อฟิลด์ — ฟิลด์อื่นนอกลิสต์ถูกทิ้ง
+const FIELD_MAX = {
+  caseId: 40, site: 60, testDate: 10, personType: 12, fullName: 120,
+  company: 120, licensePlate: 30, result1: 12, time1: 5, result2: 12,
+  time2: 5, severity: 12, photoUrl: 300, reporter: 120, notes: 600,
+  submittedAt: 40, userAgent: 200, appVersion: 20
+};
+
+// sanitize ฝั่ง server — client sanitize ถูก bypass ได้โดยยิงตรงเข้า Worker
+// (อีเมลแจ้งเตือนแทรกค่าเหล่านี้ลง HTML แบบดิบ จึงต้องตัด <> ที่นี่ด้วย)
+function clean(v, max) {
+  return String(v ?? "")
+    .replace(/[<>]/g, "")
+    .replace(/[\u0000-\u001F\u007F]/g, "")
+    .trim().slice(0, max);
+}
+
 export default {
   async fetch(request, env) {
     const origin = request.headers.get("Origin") || "";
@@ -54,11 +71,20 @@ export default {
     if (!payload.site || !payload.fullName || !payload.result1 || !payload.photoUrl)
       return json({ error: "missing_fields" }, 422, cors);
 
+    // 5.1) photoUrl ต้องเป็นลิงก์ Cloudinary เท่านั้น — URL นี้กลายเป็นปุ่ม
+    //      "ดูรูปหลักฐาน" ในอีเมลผู้จัดการ ถ้าไม่ล็อกโฮสต์ คนที่ถือ CLIENT_TOKEN
+    //      ยิงตรงเข้า Worker แล้วสอดลิงก์ phishing ได้
+    if (!/^https:\/\/res\.cloudinary\.com\//.test(String(payload.photoUrl)))
+      return json({ error: "invalid_photo_url" }, 422, cors);
+
     if (!env.FLOW_URL || !env.FLOW_SECRET)
       return json({ error: "worker_not_configured" }, 500, cors);
 
-    // 6) สลับใส่ secret จริง แล้ว forward ไป Power Automate (URL จริงซ่อนใน env)
-    const forward = { ...payload, token: env.FLOW_SECRET };
+    // 6) เก็บเฉพาะฟิลด์ใน FIELD_MAX + sanitize ทุกค่า แล้วสลับใส่ secret จริง
+    //    forward ไป Power Automate (URL จริงซ่อนใน env)
+    const forward = {};
+    for (const [k, max] of Object.entries(FIELD_MAX)) forward[k] = clean(payload[k], max);
+    forward.token = env.FLOW_SECRET;
     let upstream;
     try {
       upstream = await fetch(env.FLOW_URL, {
