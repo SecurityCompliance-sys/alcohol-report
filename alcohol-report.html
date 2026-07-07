@@ -166,6 +166,14 @@ input[type=text],input[type=date],input[type=time],input[type=number],textarea,s
   background:var(--surface);border:1.5px solid var(--line-strong);border-radius:8px;
   padding:11px 12px;transition:.15s;
 }
+/* ช่องวันที่บน iOS/Safari มีความกว้างขั้นต่ำในตัว ดันเกินขอบการ์ดได้ —
+   ปิด native appearance + ยอมให้หดตามกรอบ และจัดค่าให้ชิดซ้าย/สูงเท่าช่องอื่น */
+input[type=date]{
+  -webkit-appearance:none;appearance:none;
+  display:block;min-width:0;max-width:100%;min-height:47px;
+}
+input[type=date]::-webkit-date-and-time-value{text-align:left}
+.grid-2 > .field{min-width:0}
 input:focus,textarea:focus,select:focus{
   outline:none;border-color:var(--hazard);box-shadow:0 0 0 3px var(--hazard-soft);
 }
