@@ -23,13 +23,13 @@
 }
 html[data-theme="light"]{
   --bg:#E9ECEF;--bg-grid:rgba(43,52,64,.045);--surface:#FFFFFF;--surface-2:#F4F6F8;
-  --ink:#191D22;--muted:#5C646D;--faint:#8A929B;--line:#D3D9DF;--line-strong:#BAC2CA;
+  --ink:#191D22;--muted:#5C646D;--faint:#6B7280;--line:#D3D9DF;--line-strong:#BAC2CA;
   --hazard:#C1121F;--hazard-2:#8A0C16;--hazard-soft:#FBEAEB;--caution:#C77900;--caution-soft:#FBF0DD;
   --ok:#1B7A4B;--ok-soft:#E5F3EB;--steel:#2B3440;--shadow:rgba(25,29,34,.10);
 }
 html[data-theme="dark"]{
   --bg:#121519;--bg-grid:rgba(255,255,255,.035);--surface:#1B2027;--surface-2:#232A32;
-  --ink:#E7EBEF;--muted:#9AA3AD;--faint:#6C757E;--line:#2E353E;--line-strong:#3B434D;
+  --ink:#E7EBEF;--muted:#9AA3AD;--faint:#8A939D;--line:#2E353E;--line-strong:#3B434D;
   --hazard:#FF4D52;--hazard-2:#C1121F;--hazard-soft:#2A1618;--caution:#F0B03C;--caution-soft:#2A2213;
   --ok:#37C07A;--ok-soft:#14251C;--steel:#AEB6BF;--shadow:rgba(0,0,0,.4);
 }
@@ -74,6 +74,11 @@ header.top{padding:20px 0 12px;display:flex;align-items:center;gap:12px;flex-wra
 /* tabs */
 .tabs{display:flex;gap:6px;border-bottom:2px solid var(--line);margin:8px 0 20px;overflow-x:auto}
 .tab{border:none;background:none;padding:11px 15px;font-family:var(--font-display);font-weight:600;font-size:14px;color:var(--muted);border-bottom:3px solid transparent;margin-bottom:-2px;white-space:nowrap;display:flex;align-items:center;gap:7px}
+/* จอแคบ: ให้แท็บพับบรรทัดแทนการเลื่อนแนวนอน — ไม่งั้นแท็บ "ความปลอดภัย" หลุดจอโดยไม่มีอะไรบอก */
+@media(max-width:640px){
+  .tabs{flex-wrap:wrap;overflow-x:visible;row-gap:0}
+  .tab{padding:10px 11px;font-size:13px}
+}
 .tab.active{color:var(--hazard);border-bottom-color:var(--hazard)}
 .tab:hover{color:var(--ink)}
 .panel{display:none;animation:fade .3s}
@@ -191,7 +196,7 @@ html[data-theme="dark"] .toast{color:#121519}
     </div>
     <div class="spacer"></div>
     <span class="session-pill" id="sessionPill">session</span>
-    <button class="icon-btn" id="themeBtn">🌓</button>
+    <button class="icon-btn" id="themeBtn" aria-label="สลับโหมดสว่าง/มืด">🌓</button>
     <button class="icon-btn" id="logoutBtn">⎋ ออก</button>
   </header>
 
@@ -593,7 +598,8 @@ function exportReportsCsv(){
    WIRING
    ============================================================================ */
 function init(){
-  applyTheme(load("alc_admin_theme","light"));
+  applyTheme(load("alc_admin_theme",
+    (window.matchMedia && matchMedia("(prefers-color-scheme: dark)").matches) ? "dark" : "light"));
   const until=lockState();
   if(until){ $("loginMsg").className="login-msg err"; $("loginMsg").textContent=`ถูกล็อก ลองใหม่ใน ${Math.ceil((until-Date.now())/60000)} นาที`; }
 

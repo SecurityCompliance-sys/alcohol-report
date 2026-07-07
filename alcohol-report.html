@@ -33,7 +33,7 @@
 html[data-theme="light"]{
   --bg:#E9ECEF; --bg-grid:rgba(43,52,64,.045);
   --surface:#FFFFFF; --surface-2:#F4F6F8;
-  --ink:#191D22; --muted:#5C646D; --faint:#8A929B;
+  --ink:#191D22; --muted:#5C646D; --faint:#6B7280;
   --line:#D3D9DF; --line-strong:#BAC2CA;
   --hazard:#C1121F; --hazard-2:#8A0C16; --hazard-soft:#FBEAEB;
   --caution:#C77900; --caution-soft:#FBF0DD;
@@ -43,7 +43,7 @@ html[data-theme="light"]{
 html[data-theme="dark"]{
   --bg:#121519; --bg-grid:rgba(255,255,255,.035);
   --surface:#1B2027; --surface-2:#232A32;
-  --ink:#E7EBEF; --muted:#9AA3AD; --faint:#6C757E;
+  --ink:#E7EBEF; --muted:#9AA3AD; --faint:#8A939D;
   --line:#2E353E; --line-strong:#3B434D;
   --hazard:#FF4D52; --hazard-2:#C1121F; --hazard-soft:#2A1618;
   --caution:#F0B03C; --caution-soft:#2A2213;
@@ -76,9 +76,11 @@ body{
 /* ============================= HEADER ============================= */
 header.app{
   padding:22px 0 14px;
-  display:flex;align-items:flex-start;justify-content:space-between;gap:14px;flex-wrap:wrap;
+  display:flex;align-items:flex-start;justify-content:space-between;gap:14px;
 }
-.brand{display:flex;gap:13px;align-items:center}
+.brand{display:flex;gap:13px;align-items:center;min-width:0}
+.brand > div{min-width:0}
+@media(max-width:480px){.brand h1{font-size:16px}.brand .sub{font-size:10.5px}}
 .brand-mark{
   width:46px;height:46px;flex:none;border-radius:8px;
   background:var(--hazard);color:#fff;
@@ -115,6 +117,8 @@ header.app{
 .banner.offline{background:var(--caution-soft);border-color:var(--caution);color:var(--caution)}
 .banner.pending{background:var(--surface);border-color:var(--line-strong)}
 .banner button{margin-left:auto;font-family:var(--font-display);font-weight:600;font-size:13px;border:none;background:var(--hazard);color:#fff;padding:7px 13px;border-radius:6px;cursor:pointer}
+.banner button + button{margin-left:0}
+.banner button.ghost{background:none;border:1.5px solid var(--line-strong);color:var(--muted)}
 
 /* ============================= SECTIONS ============================= */
 .section{
@@ -147,6 +151,8 @@ html[data-theme="dark"] .sec-num{color:#121519}
 .field:last-child{margin-bottom:0}
 .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:13px}
 @media(max-width:520px){.grid-2{grid-template-columns:1fr}}
+/* คั่นกลุ่ม "ครั้งที่ 1 / ครั้งที่ 2" ใน section ผลตรวจ ไม่ให้ช่องชิดจนอ่านปนกัน */
+.sec-body .grid-2 + .grid-2{margin-top:4px;padding-top:15px;border-top:1px dashed var(--line)}
 label.lbl{
   display:block;font-family:var(--font-display);font-weight:500;font-size:13px;
   letter-spacing:.2px;margin-bottom:6px;color:var(--ink);
@@ -223,13 +229,16 @@ input.invalid,select.invalid,textarea.invalid{border-color:var(--hazard);backgro
 @keyframes sp{to{transform:rotate(360deg)}}
 
 /* ============================= ACTION BAR ============================= */
-.actions{display:flex;gap:11px;margin-top:6px}
+.actions{display:flex;gap:14px;margin-top:6px}
 .btn{
   font-family:var(--font-display);font-weight:600;font-size:15px;letter-spacing:.3px;
   border:1.5px solid var(--line-strong);border-radius:10px;padding:14px 18px;cursor:pointer;
   background:var(--surface);color:var(--ink);transition:.15s;flex:1;display:flex;align-items:center;justify-content:center;gap:8px;
 }
 .btn:hover{border-color:var(--hazard)}
+/* ปุ่มล้างฟอร์ม = ปุ่มทำลายข้อมูล — ลดน้ำหนักไม่ให้แข่งกับปุ่มส่ง */
+.actions #clearBtn{flex:0 0 auto;font-size:14px;color:var(--muted);border-color:var(--line);background:transparent}
+.actions #clearBtn:hover{color:var(--hazard);border-color:var(--hazard)}
 .btn.primary{background:var(--hazard);border-color:var(--hazard);color:#fff}
 .btn.primary:hover{background:var(--hazard-2);border-color:var(--hazard-2)}
 .btn:disabled{opacity:.5;cursor:not-allowed}
@@ -285,9 +294,21 @@ input.invalid,select.invalid,textarea.invalid{border-color:var(--hazard);backgro
 .done .idcard{
   display:inline-flex;flex-direction:column;gap:3px;align-items:center;
   background:var(--surface);border:1.5px solid var(--line-strong);border-radius:11px;padding:14px 26px;margin-bottom:22px;
+  cursor:pointer;user-select:none;transition:.15s;
 }
+.done .idcard:hover{border-color:var(--hazard)}
 .done .idcard span{font-family:var(--font-display);font-size:11px;letter-spacing:.6px;text-transform:uppercase;color:var(--muted)}
 .done .idcard b{font-family:var(--font-mono);font-size:19px;font-weight:500;color:var(--hazard)}
+.done .idcard .copyhint{font-family:var(--font-body);font-size:11.5px;letter-spacing:0;text-transform:none;color:var(--faint)}
+
+/* mini toast (ใช้ตอนคัดลอกเลขเคส) */
+.toast-mini{
+  position:fixed;left:50%;bottom:26px;transform:translateX(-50%) translateY(70px);
+  background:var(--steel);color:var(--surface);font-family:var(--font-display);font-weight:600;font-size:14px;
+  padding:11px 18px;border-radius:9px;z-index:200;opacity:0;transition:.25s;pointer-events:none;
+}
+html[data-theme="dark"] .toast-mini{color:#121519}
+.toast-mini.show{transform:translateX(-50%) translateY(0);opacity:1}
 
 /* loading overlay */
 .loading{position:fixed;inset:0;background:rgba(10,13,16,.55);backdrop-filter:blur(2px);display:none;align-items:center;justify-content:center;z-index:120;flex-direction:column;gap:16px}
@@ -310,12 +331,12 @@ input.invalid,select.invalid,textarea.invalid{border-color:var(--hazard);backgro
       <div class="brand-mark">⚠</div>
       <div>
         <h1 data-i18n="title">รายงานผลตรวจแอลกอฮอล์เป็นบวก</h1>
-        <div class="sub">Positive Alcohol Test · BevChain S&amp;C</div>
+        <div class="sub" data-i18n="subtitle">Positive Alcohol Test · BevChain S&amp;C</div>
       </div>
     </div>
     <div class="head-tools">
-      <button class="chip-toggle" id="langBtn" title="Language">🌐 <span id="langLabel">EN</span></button>
-      <button class="chip-toggle" id="themeBtn" title="Theme">🌓</button>
+      <button class="chip-toggle" id="langBtn" title="Language" aria-label="Switch language / สลับภาษา">🌐 <span id="langLabel">EN</span></button>
+      <button class="chip-toggle" id="themeBtn" title="Theme" aria-label="สลับโหมดสว่าง/มืด">🌓</button>
     </div>
   </header>
 
@@ -329,6 +350,7 @@ input.invalid,select.invalid,textarea.invalid{border-color:var(--hazard);backgro
   <!-- banners -->
   <div class="banner offline" id="offlineBanner">📴 <span data-i18n="offline">ออฟไลน์อยู่ — ระบบจะเก็บข้อมูลไว้ให้ส่งเมื่อกลับมาออนไลน์</span></div>
   <div class="banner pending" id="pendingBanner">📨 <span id="pendingText"></span> <button id="resendBtn" data-i18n="resend">ส่งซ้ำ</button></div>
+  <div class="banner pending" id="draftBanner">📄 <span id="draftText"></span> <button id="draftKeep" data-i18n="draft_keep">ใช้ต่อ</button><button class="ghost" id="draftDiscard" data-i18n="draft_new">เริ่มใหม่</button></div>
 
   <!-- ============ FORM ============ -->
   <form id="form" novalidate>
@@ -477,7 +499,7 @@ input.invalid,select.invalid,textarea.invalid{border-color:var(--hazard);backgro
     <div class="seal">✓</div>
     <h2 data-i18n="done_t">ส่งรายงานเรียบร้อย</h2>
     <p data-i18n="done_p">ระบบได้แจ้งเตือนไปยังผู้จัดการไซต์แล้ว</p>
-    <div class="idcard"><span data-i18n="caseid_label2">เลขอ้างอิงเคส</span><b id="doneCaseId">—</b></div>
+    <div class="idcard" id="caseIdCard" role="button" tabindex="0" title="คัดลอกเลขเคส"><span data-i18n="caseid_label2">เลขอ้างอิงเคส</span><b id="doneCaseId">—</b><span class="copyhint" data-i18n="tap_copy">แตะเพื่อคัดลอก</span></div>
     <div><button class="btn primary" id="againBtn" style="max-width:280px;margin:0 auto" data-i18n="again">+ รายงานเคสใหม่</button></div>
   </div>
 
@@ -493,7 +515,7 @@ input.invalid,select.invalid,textarea.invalid{border-color:var(--hazard);backgro
     <div class="modal-head">
       <span class="tag">REVIEW</span>
       <h2 data-i18n="rev_t">ตรวจสอบก่อนส่ง</h2>
-      <button class="x" id="closeReview">×</button>
+      <button class="x" id="closeReview" aria-label="ปิดหน้าต่างตรวจสอบ">×</button>
     </div>
     <div class="modal-body">
       <div id="reviewList"></div>
@@ -509,6 +531,7 @@ input.invalid,select.invalid,textarea.invalid{border-color:var(--hazard);backgro
 
 <!-- LOADING -->
 <div class="loading" id="loading"><div class="ring"></div><div class="txt" id="loadingText">กำลังส่ง…</div></div>
+<div class="toast-mini" id="toastMini" role="status"></div>
 
 <script>
 "use strict";
@@ -567,6 +590,10 @@ const I18N = {
     load_upload:"กำลังอัปโหลดรูป…", load_send:"กำลังส่งรายงาน…",
     pending_one:"มีรายงานค้างส่ง 1 รายการ", pending_many:"มีรายงานค้างส่ง {n} รายการ",
     alert_photo_wait:"กรุณารอรูปอัปโหลดให้เสร็จก่อน", err_send:"ส่งไม่สำเร็จ — ข้อมูลถูกเก็บไว้แล้ว ลองกด 'ส่งซ้ำ'",
+    subtitle:"Positive Alcohol Test · BevChain S&C",
+    confirm_clear:"ล้างข้อมูลทั้งฟอร์ม? ข้อมูลที่กรอกไว้จะหายทั้งหมดและกู้คืนไม่ได้",
+    draft_restored:"กู้คืนร่างที่ค้างไว้{t} — ใช้ต่อหรือเริ่มเคสใหม่?", draft_keep:"ใช้ต่อ", draft_new:"เริ่มใหม่",
+    tap_copy:"แตะเพื่อคัดลอก", copied:"คัดลอกเลขเคสแล้ว ✓",
     rk:{site:"ไซต์",date:"วันที่ตรวจ",type:"ประเภท",name:"ชื่อ-นามสกุล",company:"บริษัท/สังกัด",plate:"ทะเบียนรถ",r1:"ผลครั้งที่ 1",r2:"ผลครั้งที่ 2",sev:"สถานะ",reporter:"ผู้รายงาน",notes:"หมายเหตุ",case:"เลขอ้างอิง"},
     tv:{transport:"พนักงานขนส่ง",general:"พนักงานทั่วไป"}
   },
@@ -592,6 +619,10 @@ const I18N = {
     load_upload:"Uploading photo…", load_send:"Submitting report…",
     pending_one:"1 report pending to send", pending_many:"{n} reports pending to send",
     alert_photo_wait:"Please wait for the photo to finish uploading", err_send:"Send failed — data saved. Try 'Resend'.",
+    subtitle:"รายงานผลตรวจแอลกอฮอล์ · BevChain S&C",
+    confirm_clear:"Clear the entire form? All entered data will be lost and cannot be recovered.",
+    draft_restored:"Restored an unfinished draft{t} — continue or start a new case?", draft_keep:"Continue", draft_new:"Start new",
+    tap_copy:"Tap to copy", copied:"Case ID copied ✓",
     rk:{site:"Site",date:"Test date",type:"Type",name:"Full name",company:"Company",plate:"Plate",r1:"Reading #1",r2:"Reading #2",sev:"Status",reporter:"Reporter",notes:"Notes",case:"Reference"},
     tv:{transport:"Transport staff",general:"General staff"}
   }
@@ -602,7 +633,9 @@ const I18N = {
    ============================================================================ */
 const store = (() => { try { const k="__t"; localStorage.setItem(k,"1"); localStorage.removeItem(k); return localStorage; } catch(e){ return null; } })();
 let lang = (store && store.getItem("alc_lang")) || "th";
-let theme = (store && store.getItem("alc_theme")) || "light";
+// ธีมเริ่มต้นตามเครื่องผู้ใช้ (รปภ. ส่วนใหญ่ตรวจกลางคืน) — ค่าที่ผู้ใช้เลือกเองยังจำทับได้เหมือนเดิม
+let theme = (store && store.getItem("alc_theme")) ||
+  (window.matchMedia && matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
 let photoUrl = "";          // Cloudinary secure_url หลังอัปโหลดสำเร็จ
 let uploading = false;      // true ระหว่างอัปโหลดรูป
 let submitting = false;     // กันกดส่งซ้ำ
@@ -655,10 +688,14 @@ function init(){
   $("photo").onchange = onPhotoPick;
   $("removePhoto").onclick = clearPhoto;
   $("form").onsubmit = onReview;
-  $("clearBtn").onclick = clearForm;
+  $("clearBtn").onclick = () => { if(confirm(t("confirm_clear"))) clearForm(); };
   $("closeReview").onclick = () => toggleOverlay(false);
   $("againBtn").onclick = resetAll;
   $("resendBtn").onclick = resendPending;
+  $("draftKeep").onclick = () => $("draftBanner").classList.remove("show");
+  $("draftDiscard").onclick = () => { clearForm(); };
+  $("caseIdCard").onclick = copyCaseId;
+  $("caseIdCard").onkeydown = e => { if(e.key==="Enter"||e.key===" "){ e.preventDefault(); copyCaseId(); } };
   setupHold();
 
   // draft + pending + offline
@@ -945,6 +982,7 @@ async function submit(){
 function success(id){
   submitting=false;
   $("form").style.display="none";
+  $("draftBanner").classList.remove("show");
   document.querySelector(".actions").style.display="none";
   document.querySelector(".ribbon").style.display="none";
   $("doneCaseId").textContent=id;
@@ -970,7 +1008,7 @@ function saveDraft(){
     ptype:($("pt_transport").checked?"transport":($("pt_general").checked?"general":"")),
     fullName:$("fullName").value, company:$("company").value, plate:$("plate").value,
     result1:$("result1").value, time1:$("time1").value, result2:$("result2").value, time2:$("time2").value,
-    reporter:$("reporter").value, notes:$("notes").value, caseId
+    reporter:$("reporter").value, notes:$("notes").value, caseId, savedAt:Date.now()
   };
   try{ store.setItem(DRAFT_KEY, JSON.stringify(d)); }catch(_){}
 }
@@ -983,6 +1021,16 @@ function restoreDraft(){
   else if(d.ptype==="general"){ $("pt_general").checked=true; onTypeChange(); }
   if(d.caseId){ caseId=d.caseId; $("caseIdDisplay").textContent=caseId; }
   updateSeverity();
+  // ประกาศให้รู้ว่ามีร่างเก่าถูกกู้คืน — เครื่องป้อมใช้ร่วมกันหลายกะ
+  // ถ้าไม่บอก กะถัดไปอาจส่งข้อมูลค้างของเคสก่อนโดยเข้าใจว่าเป็นเคสใหม่
+  const hasData = ["fullName","company","plate","result1","result2","notes"].some(k=>String(d[k]||"").trim()) || d.ptype;
+  if(hasData){
+    const p=n=>String(n).padStart(2,"0");
+    let when="";
+    if(d.savedAt){ const s=new Date(d.savedAt); when=` (${p(s.getDate())}/${p(s.getMonth()+1)} ${p(s.getHours())}:${p(s.getMinutes())})`; }
+    $("draftText").textContent = t("draft_restored").replace("{t}", when);
+    $("draftBanner").classList.add("show");
+  }
 }
 function clearDraft(){ if(store) try{ store.removeItem(DRAFT_KEY); }catch(_){} }
 
@@ -1027,8 +1075,26 @@ function clearForm(){
   ["site","testDate","fullName","company","plate","result1","time1","result2","time2","reporter"].forEach(clearErr);
   $("err_ptype").classList.remove("show"); $("err_photo").classList.remove("show");
   $("plateField").classList.remove("show");
+  $("draftBanner").classList.remove("show");
   $("testDate").value=todayLocal();
   clearDraft(); newCaseId();
+}
+
+/* คัดลอกเลขเคสจากหน้า success — เลข 23 ตัว พิมพ์ต่อเองผิดง่าย */
+let toastT=null;
+function showToastMini(msg){
+  const el=$("toastMini"); el.textContent=msg; el.classList.add("show");
+  clearTimeout(toastT); toastT=setTimeout(()=>el.classList.remove("show"),2200);
+}
+async function copyCaseId(){
+  const id=$("doneCaseId").textContent;
+  if(!id || id==="—") return;
+  try{ await navigator.clipboard.writeText(id); }
+  catch(_){
+    const ta=document.createElement("textarea"); ta.value=id; document.body.appendChild(ta);
+    ta.select(); try{ document.execCommand("copy"); }catch(e){} ta.remove();
+  }
+  showToastMini(t("copied"));
 }
 function resetAll(){
   $("done").classList.remove("show");
