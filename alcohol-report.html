@@ -567,6 +567,9 @@ const CONFIG = {
   // เกณฑ์ (ไม่บังคับ) — ค่า >= นี้จะติดป้าย "สูงกว่าเกณฑ์" (ตั้งตามนโยบาย/หน่วยของคุณ; ใส่ null เพื่อปิด)
   criticalThreshold: 0.05,
 
+  // หน่วยของผลตรวจ — แสดงต่อท้ายตัวเลขตอน review และในอีเมล (ใส่ "" เพื่อปิด)
+  resultUnit: "mg%",
+
   // ขนาดรูปสูงสุดหลังบีบอัด
   maxImageDim: 1600,
   imageQuality: 0.82
@@ -931,8 +934,9 @@ function buildReview(d){
   html += row(rk.name, d.fullName);
   html += row(rk.company, d.company);
   if(d.personType==="transport") html += row(rk.plate, d.licensePlate, true);
-  html += row(rk.r1, `${d.result1}  (${d.time1})`, true);
-  html += row(rk.r2, `${d.result2}  (${d.time2})`, true);
+  const u = CONFIG.resultUnit ? ` ${CONFIG.resultUnit}` : "";
+  html += row(rk.r1, `${d.result1}${u}  (${d.time1})`, true);
+  html += row(rk.r2, `${d.result2}${u}  (${d.time2})`, true);
   html += row(rk.sev, sev);
   html += row(rk.reporter, d.reporter);
   html += row(rk.notes, d.notes);
