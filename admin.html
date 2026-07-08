@@ -249,8 +249,9 @@ html[data-theme="dark"] .toast{color:#121519}
       <div class="card-body">
         <div class="grid2">
           <div class="fld"><label class="lbl" for="cfg_threshold">เกณฑ์ "สูงกว่าปกติ" <span class="tag">ว่าง=ปิด</span></label><input class="inp mono" id="cfg_threshold" placeholder="0.05"></div>
-          <div class="fld"><label class="lbl" for="cfg_version">App Version</label><input class="inp mono" id="cfg_version" placeholder="1.0.0"></div>
+          <div class="fld"><label class="lbl" for="cfg_unit">หน่วยผลตรวจ <span class="tag">แสดงท้ายตัวเลข · ว่าง=ปิด</span></label><input class="inp mono" id="cfg_unit" placeholder="mg%"></div>
         </div>
+        <div class="fld"><label class="lbl" for="cfg_version">App Version</label><input class="inp mono" id="cfg_version" placeholder="1.0.0"></div>
         <div class="grid2">
           <div class="fld"><label class="lbl" for="cfg_maxdim">ขนาดรูปสูงสุด (px)</label><input class="inp mono" id="cfg_maxdim" placeholder="1600"></div>
           <div class="fld"><label class="lbl" for="cfg_quality">คุณภาพรูป (0–1)</label><input class="inp mono" id="cfg_quality" placeholder="0.82"></div>
@@ -402,7 +403,7 @@ const DEFAULT_CFG = {
   webhookUrl:"", sharedToken:"",
   cloudName:"diiqvxqqd", uploadPreset:"alcohol_report", photoFolder:"alcohol_reports",
   sites:["LLKDC","NDC","KKRDC","BBT","TW","SBC"],
-  criticalThreshold:0.05, appVersion:"1.0.0", maxImageDim:1600, imageQuality:0.82
+  criticalThreshold:0.05, resultUnit:"mg%", appVersion:"1.0.0", maxImageDim:1600, imageQuality:0.82
 };
 let cfg = {}, routes = [], reportCfg = {};
 
@@ -473,12 +474,14 @@ function fillConfig(){
   $("cfg_webhook").value=cfg.webhookUrl||""; $("cfg_token").value=cfg.sharedToken||"";
   $("cfg_cloud").value=cfg.cloudName||""; $("cfg_preset").value=cfg.uploadPreset||""; $("cfg_folder").value=cfg.photoFolder||"";
   $("cfg_threshold").value=cfg.criticalThreshold==null?"":cfg.criticalThreshold;
+  $("cfg_unit").value=cfg.resultUnit==null?"":cfg.resultUnit;
   $("cfg_version").value=cfg.appVersion||""; $("cfg_maxdim").value=cfg.maxImageDim||1600; $("cfg_quality").value=cfg.imageQuality||0.82;
 }
 function readConfig(){
   cfg.webhookUrl=$("cfg_webhook").value.trim(); cfg.sharedToken=$("cfg_token").value.trim();
   cfg.cloudName=$("cfg_cloud").value.trim(); cfg.uploadPreset=$("cfg_preset").value.trim(); cfg.photoFolder=$("cfg_folder").value.trim();
   const th=$("cfg_threshold").value.trim(); cfg.criticalThreshold = th==="" ? null : (isNaN(parseFloat(th))?null:parseFloat(th));
+  cfg.resultUnit=$("cfg_unit").value.trim();
   cfg.appVersion=$("cfg_version").value.trim()||"1.0.0";
   cfg.maxImageDim=parseInt($("cfg_maxdim").value)||1600; cfg.imageQuality=parseFloat($("cfg_quality").value)||0.82;
 }
@@ -506,6 +509,7 @@ function configBlock(){
   photoFolder: ${JSON.stringify(cfg.photoFolder)},
   sites: ${JSON.stringify(cfg.sites)},
   criticalThreshold: ${ct},
+  resultUnit: ${JSON.stringify(cfg.resultUnit ?? "")},
   maxImageDim: ${Number(cfg.maxImageDim)||1600},
   imageQuality: ${Number(cfg.imageQuality)||0.82}
 };`;
@@ -583,6 +587,7 @@ function renderReports(){
     let v=r[k];
     if(k==="photoUrl" && v) return `<td><a href="${esc(v)}" target="_blank" rel="noopener" style="color:var(--hazard)">📷</a></td>`;
     if(k==="severity") return `<td><span class="badge ${v==='elevated'?'no':'info'}" style="padding:3px 8px">${esc(v||'')}</span></td>`;
+    if((k==="result1"||k==="result2") && v && cfg.resultUnit) v = `${v} ${cfg.resultUnit}`;
     return `<td class="${['caseId','testDate','licensePlate','result1','result2','time1','time2','submittedAt'].includes(k)?'mono':''}">${esc(v||'')}</td>`;
   }).join("")+"</tr>").join("") : `<tr><td colspan="${REPORT_COLS.length}" class="empty">ไม่พบรายการตามตัวกรอง</td></tr>`;
   $("reportsCount").textContent=`แสดง ${rows.length} จาก ${reportRows.length} รายการ`;
