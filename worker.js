@@ -20,7 +20,10 @@
    ============================================================================ */
 
 // ⬇️ แก้เป็นโดเมน GitHub Pages ของคุณ (ล็อกไม่ให้เว็บอื่นเรียก Worker)
+//    หมายเหตุ: บัญชี GitHub เปลี่ยนชื่อเป็น securitycompliance-sys แล้ว —
+//    คงโดเมนเก่าไว้ชั่วคราวเผื่อยังมีหน้าเก่าค้างใน cache
 const ALLOWED_ORIGINS = [
+  "https://securitycompliance-sys.github.io",
   "https://brfsecurityandcompliance.github.io"
 ];
 const MAX_BYTES = 20000; // กันยิง payload ใหญ่ผิดปกติ
