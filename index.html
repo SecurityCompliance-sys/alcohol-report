@@ -169,13 +169,20 @@ input[type=text],input[type=date],input[type=time],input[type=number],textarea,s
   background:var(--surface);border:1.5px solid var(--line-strong);border-radius:8px;
   padding:11px 12px;transition:.15s;
 }
-/* ช่องวันที่บน iOS/Safari มีความกว้างขั้นต่ำในตัว ดันเกินขอบการ์ดได้ —
-   ปิด native appearance + ยอมให้หดตามกรอบ และจัดค่าให้ชิดซ้าย/สูงเท่าช่องอื่น */
-input[type=date]{
-  -webkit-appearance:none;appearance:none;
-  display:block;min-width:0;max-width:100%;min-height:47px;
+/* ช่องวันที่ = ช่องพิมพ์ วว/ดด/ปปปป + ปุ่มปฏิทินเนทีฟซ้อนด้านขวา (มือถือแตะเลือกจากปฏิทินได้)
+   เก็บค่าที่ส่งจริงเป็น ISO เสมอ ส่วนที่ผู้ใช้เห็น/พิมพ์เป็น วัน/เดือน/ปี */
+.date-wrap{position:relative}
+.date-wrap #testDate{padding-right:48px}
+.date-ic{
+  position:absolute;right:1.5px;top:1.5px;bottom:1.5px;width:44px;
+  display:flex;align-items:center;justify-content:center;font-size:18px;color:var(--muted);
+  pointer-events:none;border-left:1.5px solid var(--line);border-radius:0 8px 8px 0;
 }
-input[type=date]::-webkit-date-and-time-value{text-align:left}
+.date-wrap input[type=date]{
+  position:absolute;right:0;top:0;bottom:0;width:48px;height:auto;min-height:0;min-width:0;
+  margin:0;padding:0;border:none;background:transparent;opacity:0;cursor:pointer;
+  -webkit-appearance:none;appearance:none;
+}
 .grid-2 > .field{min-width:0}
 input:focus,textarea:focus,select:focus{
   outline:none;border-color:var(--hazard);box-shadow:0 0 0 3px var(--hazard-soft);
@@ -380,8 +387,13 @@ html[data-theme="dark"] .toast-mini{color:#121519}
           </div>
           <div class="field">
             <label class="lbl" for="testDate" data-i18n="f_date">วันที่ตรวจ<span class="req">*</span></label>
-            <input type="date" id="testDate" class="mono-in" required>
-            <div class="err" id="err_testDate" data-i18n="e_req">กรุณาเลือกข้อมูลนี้</div>
+            <div class="date-wrap">
+              <input type="text" id="testDate" class="mono-in" inputmode="numeric" maxlength="10" autocomplete="off" placeholder="วว/ดด/ปปปป" required>
+              <span class="date-ic" aria-hidden="true">📅</span>
+              <input type="date" id="testDatePicker" tabindex="-1" aria-label="เลือกวันที่จากปฏิทิน">
+            </div>
+            <div class="hint" data-i18n="h_date">รูปแบบ วัน/เดือน/ปี (ค.ศ.) เช่น 08/07/2026</div>
+            <div class="err" id="err_testDate" data-i18n="e_date">กรุณากรอกวันที่ให้ถูกต้อง (วว/ดด/ปปปป)</div>
           </div>
         </div>
       </div>
@@ -587,7 +599,7 @@ const I18N = {
     ribbon_note:"กรอกให้ครบทุกช่องที่มีเครื่องหมาย *", caseid_label:"เลขอ้างอิง:", caseid_label2:"เลขอ้างอิงเคส",
     offline:"ออฟไลน์อยู่ — ระบบจะเก็บข้อมูลไว้ให้ส่งเมื่อกลับมาออนไลน์", resend:"ส่งซ้ำ",
     s1:"สถานที่และวันที่ตรวจ", s2:"ข้อมูลผู้ถูกตรวจ", s3:"ผลการตรวจวัด", s4:"รูปภาพหลักฐาน", s5:"ผู้รายงานและหมายเหตุ",
-    f_site:"ไซต์ / สถานที่ตรวจ", choose:"— เลือกไซต์ —", f_date:"วันที่ตรวจ",
+    f_site:"ไซต์ / สถานที่ตรวจ", choose:"— เลือกไซต์ —", f_date:"วันที่ตรวจ", h_date:"รูปแบบ วัน/เดือน/ปี (ค.ศ.) เช่น 08/07/2026",
     f_type:"ประเภทบุคคล", pt_transport:"พนักงานขนส่ง", pt_transport_s:"มีทะเบียนรถ", pt_general:"พนักงานทั่วไป", pt_general_s:"ไม่มีทะเบียน",
     f_name:"ชื่อ-นามสกุล", f_company:"บริษัท / สังกัด", f_plate:"ทะเบียนรถ", h_plate:"รองรับทะเบียนไทย/อังกฤษ (ตัวอักษร ตัวเลข ขีด และจังหวัด)",
     f_r1:"ผลครั้งที่ 1 (ค่าที่วัดได้)", h_unit:"หน่วยตามเครื่องวัด (เช่น mg%)", f_t1:"เวลาตรวจครั้งที่ 1 (24 ชม.)",
@@ -598,7 +610,7 @@ const I18N = {
     rev_t:"ตรวจสอบก่อนส่ง", hold_t:"กดค้างเพื่อยืนยันส่ง", hold_s:"กดค้างไว้ประมาณ 1 วินาที",
     done_t:"ส่งรายงานเรียบร้อย", done_p:"ระบบได้แจ้งเตือนไปยังผู้จัดการไซต์แล้ว", again:"+ รายงานเคสใหม่",
     confidential:"■ เอกสารลับ · สำหรับใช้ภายในเท่านั้น",
-    e_req:"กรุณากรอกข้อมูลนี้", e_num:"กรุณากรอกเป็นตัวเลข", e_plate:"กรุณากรอกทะเบียนรถให้ถูกต้อง", e_photo:"กรุณาแนบรูปหลักฐาน", e_time:"กรุณากรอกเวลาแบบ 24 ชม. (HH:mm เช่น 08:15)",
+    e_req:"กรุณากรอกข้อมูลนี้", e_num:"กรุณากรอกเป็นตัวเลข", e_plate:"กรุณากรอกทะเบียนรถให้ถูกต้อง", e_photo:"กรุณาแนบรูปหลักฐาน", e_time:"กรุณากรอกเวลาแบบ 24 ชม. (HH:mm เช่น 08:15)", e_date:"กรุณากรอกวันที่ให้ถูกต้อง (วว/ดด/ปปปป)",
     sev_pos:"ผลเป็นบวก — ต้องดำเนินการ", sev_elev:"สูงกว่าเกณฑ์ที่กำหนด",
     up_compress:"กำลังบีบอัดรูป…", up_uploading:"กำลังอัปโหลด…", up_done:"อัปโหลดสำเร็จ", up_fail:"อัปโหลดไม่สำเร็จ แตะเพื่อลองใหม่",
     load_upload:"กำลังอัปโหลดรูป…", load_send:"กำลังส่งรายงาน…",
@@ -616,7 +628,7 @@ const I18N = {
     ribbon_note:"Complete all fields marked *", caseid_label:"Ref:", caseid_label2:"Case Reference",
     offline:"You're offline — data will be saved and sent when back online", resend:"Resend",
     s1:"Location & Test Date", s2:"Person Tested", s3:"Test Readings", s4:"Evidence Photo", s5:"Reporter & Notes",
-    f_site:"Site / Test Location", choose:"— Select site —", f_date:"Test date",
+    f_site:"Site / Test Location", choose:"— Select site —", f_date:"Test date", h_date:"Format day/month/year e.g. 08/07/2026",
     f_type:"Person type", pt_transport:"Transport staff", pt_transport_s:"has plate", pt_general:"General staff", pt_general_s:"no plate",
     f_name:"Full name", f_company:"Company / Affiliation", f_plate:"License plate", h_plate:"Thai/English plates supported (letters, digits, dash, province)",
     f_r1:"Reading #1 (measured value)", h_unit:"Unit per device (e.g. mg%)", f_t1:"Time of reading #1 (24h)",
@@ -627,7 +639,7 @@ const I18N = {
     rev_t:"Review before sending", hold_t:"Hold to confirm & send", hold_s:"Press and hold ~1 second",
     done_t:"Report submitted", done_p:"The site manager has been notified.", again:"+ New report",
     confidential:"■ Confidential · Internal use only",
-    e_req:"This field is required", e_num:"Please enter a number", e_plate:"Please enter a valid plate", e_photo:"Please attach evidence", e_time:"Use 24-hour format (HH:mm e.g. 08:15)",
+    e_req:"This field is required", e_num:"Please enter a number", e_plate:"Please enter a valid plate", e_photo:"Please attach evidence", e_time:"Use 24-hour format (HH:mm e.g. 08:15)", e_date:"Enter a valid date (dd/mm/yyyy)",
     sev_pos:"Positive result — action required", sev_elev:"Above configured threshold",
     up_compress:"Compressing image…", up_uploading:"Uploading…", up_done:"Uploaded", up_fail:"Upload failed — tap to retry",
     load_upload:"Uploading photo…", load_send:"Submitting report…",
@@ -678,6 +690,30 @@ function todayLocal(){
   const d = new Date(), p = n => String(n).padStart(2,"0");
   return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())}`;
 }
+// แปลง ISO (yyyy-mm-dd) → รูปแบบที่ผู้ใช้เห็น (dd/mm/yyyy) และกลับกัน
+function isoToDisplay(iso){
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(iso||"").trim());
+  return m ? `${m[3]}/${m[2]}/${m[1]}` : "";
+}
+function displayToISO(s){
+  const m = /^(\d{2})\/(\d{2})\/(\d{4})$/.exec(String(s||"").trim());
+  if(!m) return "";
+  const d=+m[1], mo=+m[2], y=+m[3], dt=new Date(y, mo-1, d);
+  // กันวันที่เกินจริง เช่น 31/02/2026
+  if(dt.getFullYear()!==y || dt.getMonth()!==mo-1 || dt.getDate()!==d) return "";
+  return `${m[3]}-${m[2]}-${m[1]}`;
+}
+function todayDisplay(){ return isoToDisplay(todayLocal()); }
+// พิมพ์เลขแล้วเติม "/" อัตโนมัติ (08072026 → 08/07/2026) + sync ไปปฏิทินเนทีฟ
+function formatDate(e){
+  let v = e.target.value.replace(/\D/g,"").slice(0,8);
+  if(v.length>=5) v = v.slice(0,2)+"/"+v.slice(2,4)+"/"+v.slice(4);
+  else if(v.length>=3) v = v.slice(0,2)+"/"+v.slice(2);
+  e.target.value = v;
+  clearErr("testDate");
+  const iso = displayToISO(v);
+  if(iso) $("testDatePicker").value = iso;
+}
 
 /* ============================================================================
    INIT
@@ -686,8 +722,9 @@ function init(){
   // sites dropdown
   const sel = $("site");
   CONFIG.sites.forEach(s => { const o=document.createElement("option"); o.value=s; o.textContent=s; sel.appendChild(o); });
-  // default date = today
-  $("testDate").value = todayLocal();
+  // default date = today (แสดง วว/ดด/ปปปป, seed ปฏิทินเนทีฟด้วยค่า ISO)
+  $("testDate").value = todayDisplay();
+  $("testDatePicker").value = todayLocal();
   $("verLabel").textContent = "v" + CONFIG.appVersion;
 
   applyTheme(); applyLang(); newCaseId();
@@ -698,6 +735,11 @@ function init(){
   document.querySelectorAll('input[name="ptype"]').forEach(r => r.onchange = onTypeChange);
   ["result1","result2"].forEach(id => $(id).addEventListener("input", updateSeverity));
   ["time1","time2"].forEach(id => $(id).addEventListener("input", formatTime));
+  $("testDate").addEventListener("input", formatDate);
+  // เลือกจากปฏิทินเนทีฟ → เขียนกลับเป็น วว/ดด/ปปปป ในช่องพิมพ์
+  $("testDatePicker").addEventListener("change", e => {
+    if(e.target.value){ $("testDate").value = isoToDisplay(e.target.value); clearErr("testDate"); saveDraftDebounced(); }
+  });
   $("drop").onclick = () => $("photo").click();
   $("photo").onchange = onPhotoPick;
   $("removePhoto").onclick = clearPhoto;
@@ -878,6 +920,9 @@ function validate(){
   // 24h time format (HH:mm)
   ["time1","time2"].forEach(id => { const v=$(id).value.trim(); if(v && !TIME_RE.test(v)){ clearErr(id); showErr(id); if(!bad.includes(id))bad.push(id); ok=false; } });
 
+  // date format dd/mm/yyyy (ต้องเป็นวันที่จริง)
+  { const v=$("testDate").value.trim(); if(v && !displayToISO(v)){ clearErr("testDate"); showErr("testDate"); if(!bad.includes("testDate"))bad.push("testDate"); ok=false; } }
+
   // photo uploaded
   clearErr("photo");
   if(!photoUrl){ $("err_photo").classList.add("show"); bad.push("photo"); ok=false; }
@@ -895,7 +940,7 @@ function collect(){
     token: CONFIG.sharedToken,
     caseId,
     site: sanitize($("site").value,60),
-    testDate: $("testDate").value,
+    testDate: displayToISO($("testDate").value),
     personType: isTransport ? "transport" : "general",
     fullName: sanitize($("fullName").value,120),
     company: sanitize($("company").value,120),
@@ -932,7 +977,7 @@ function buildReview(d){
   let html = "";
   html += row(rk.case, d.caseId, true);
   html += row(rk.site, d.site);
-  html += row(rk.date, d.testDate, true);
+  html += row(rk.date, isoToDisplay(d.testDate), true);
   html += row(rk.type, tv[d.personType]);
   html += row(rk.name, d.fullName);
   html += row(rk.company, d.company);
@@ -1032,6 +1077,9 @@ function restoreDraft(){
   let d; try{ d=JSON.parse(store.getItem(DRAFT_KEY)); }catch(_){ return; }
   if(!d) return;
   ["site","testDate","fullName","company","plate","result1","time1","result2","time2","reporter","notes"].forEach(k=>{ if(d[k]!=null && $(k)) $(k).value=d[k]; });
+  // ร่างเก่า (เวอร์ชันก่อน) เก็บวันที่เป็น ISO — แปลงเป็น วว/ดด/ปปปป และ seed ปฏิทิน
+  if(/^\d{4}-\d{2}-\d{2}$/.test($("testDate").value)) $("testDate").value = isoToDisplay($("testDate").value);
+  $("testDatePicker").value = displayToISO($("testDate").value) || todayLocal();
   if(d.ptype==="transport"){ $("pt_transport").checked=true; onTypeChange(); }
   else if(d.ptype==="general"){ $("pt_general").checked=true; onTypeChange(); }
   if(d.caseId){ caseId=d.caseId; $("caseIdDisplay").textContent=caseId; }
@@ -1091,7 +1139,8 @@ function clearForm(){
   $("err_ptype").classList.remove("show"); $("err_photo").classList.remove("show");
   $("plateField").classList.remove("show");
   $("draftBanner").classList.remove("show");
-  $("testDate").value=todayLocal();
+  $("testDate").value=todayDisplay();
+  $("testDatePicker").value=todayLocal();
   clearDraft(); newCaseId();
 }
 
