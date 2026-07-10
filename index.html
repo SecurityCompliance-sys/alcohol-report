@@ -194,6 +194,25 @@ input.invalid,select.invalid,textarea.invalid{border-color:var(--hazard);backgro
 .err.show{display:block}
 .mono-in{font-family:var(--font-mono)}
 
+/* ช่องผลตรวจ: เลข 0–99 + หน่วย mg% ต่อท้ายอัตโนมัติ + ปุ่ม HI (เครื่องเป่าขึ้น HI เมื่อเกิน 99) */
+.reading{display:flex;gap:10px;align-items:stretch}
+.reading-in{position:relative;flex:1;min-width:0}
+.reading-in input{width:100%;padding-right:52px}
+.reading-in .unit{
+  position:absolute;right:13px;top:50%;transform:translateY(-50%);
+  font-family:var(--font-mono);font-size:13px;color:var(--muted);pointer-events:none;
+}
+.reading-in .unit.hide{display:none}
+.reading-in input:disabled{background:var(--surface-2);color:var(--ink);-webkit-text-fill-color:var(--ink);opacity:1;font-weight:600}
+.hi-btn{
+  flex:0 0 auto;min-width:56px;padding:0 12px;
+  border:1.5px solid var(--line-strong);border-radius:8px;background:var(--surface);color:var(--muted);
+  font-family:var(--font-display);font-weight:700;font-size:14px;letter-spacing:.5px;cursor:pointer;transition:.15s;
+}
+.hi-btn:hover{border-color:var(--hazard);color:var(--hazard)}
+.hi-btn.on{background:var(--hazard);border-color:var(--hazard);color:#fff}
+.hi-btn:focus-visible{outline:2px solid var(--hazard);outline-offset:2px}
+
 /* segmented person-type */
 .segment{display:grid;grid-template-columns:1fr 1fr;gap:11px}
 .segment label{
@@ -445,9 +464,15 @@ html[data-theme="dark"] .toast-mini{color:#121519}
         <div class="grid-2">
           <div class="field">
             <label class="lbl" for="result1" data-i18n="f_r1">ผลครั้งที่ 1 (ค่าที่วัดได้)<span class="req">*</span></label>
-            <input type="text" id="result1" inputmode="decimal" maxlength="12" class="mono-in" required placeholder="เช่น 0.06">
-            <div class="hint" data-i18n="h_unit">หน่วยตามเครื่องวัด (เช่น mg%)</div>
-            <div class="err" id="err_result1" data-i18n="e_num">กรุณากรอกเป็นตัวเลข</div>
+            <div class="reading">
+              <div class="reading-in">
+                <input type="text" id="result1" inputmode="numeric" maxlength="2" class="mono-in" required placeholder="เช่น 45">
+                <span class="unit hide" id="unit_result1" aria-hidden="true">mg%</span>
+              </div>
+              <button type="button" class="hi-btn" id="hi_result1" data-target="result1" aria-pressed="false" title="เครื่องเป่าขึ้น HI (เกิน 99)">HI</button>
+            </div>
+            <div class="hint" data-i18n="h_reading">เลขจำนวนเต็ม 0–99 (mg%) · ถ้าเครื่องขึ้น HI ให้กดปุ่ม HI</div>
+            <div class="err" id="err_result1" data-i18n="e_num">กรอกค่าที่วัดได้ 0–99 หรือกดปุ่ม HI</div>
           </div>
           <div class="field">
             <label class="lbl" for="time1" data-i18n="f_t1">เวลาตรวจครั้งที่ 1 (24 ชม.)<span class="req">*</span></label>
@@ -458,8 +483,14 @@ html[data-theme="dark"] .toast-mini{color:#121519}
         <div class="grid-2">
           <div class="field">
             <label class="lbl" for="result2" data-i18n="f_r2">ผลครั้งที่ 2 (ยืนยันซ้ำ)<span class="req">*</span></label>
-            <input type="text" id="result2" inputmode="decimal" maxlength="12" class="mono-in" required placeholder="เช่น 0.05">
-            <div class="err" id="err_result2" data-i18n="e_num">กรุณากรอกเป็นตัวเลข</div>
+            <div class="reading">
+              <div class="reading-in">
+                <input type="text" id="result2" inputmode="numeric" maxlength="2" class="mono-in" required placeholder="เช่น 45">
+                <span class="unit hide" id="unit_result2" aria-hidden="true">mg%</span>
+              </div>
+              <button type="button" class="hi-btn" id="hi_result2" data-target="result2" aria-pressed="false" title="เครื่องเป่าขึ้น HI (เกิน 99)">HI</button>
+            </div>
+            <div class="err" id="err_result2" data-i18n="e_num">กรอกค่าที่วัดได้ 0–99 หรือกดปุ่ม HI</div>
           </div>
           <div class="field">
             <label class="lbl" for="time2" data-i18n="f_t2">เวลาตรวจครั้งที่ 2 (24 ชม.)<span class="req">*</span></label>
@@ -581,8 +612,8 @@ const CONFIG = {
   // รายชื่อไซต์ — ต้องสะกดตรงกับคอลัมน์ Title ใน SharePoint routing list เป๊ะๆ
   sites: ["LLKDC", "NDC", "KKRDC", "BBT", "TW", "SBC"],
 
-  // เกณฑ์ (ไม่บังคับ) — ค่า >= นี้จะติดป้าย "สูงกว่าเกณฑ์" (ตั้งตามนโยบาย/หน่วยของคุณ; ใส่ null เพื่อปิด)
-  criticalThreshold: 0.05,
+  // เกณฑ์ (ไม่บังคับ) หน่วย mg% — ค่า >= นี้จะติดป้าย "สูงกว่าเกณฑ์" (50 = เกณฑ์ผู้ขับขี่ตามกฎหมายไทย; ใส่ null เพื่อปิด · HI ถือว่าสูงกว่าเกณฑ์เสมอ)
+  criticalThreshold: 50,
 
   // หน่วยของผลตรวจ — แสดงต่อท้ายตัวเลขตอน review และในอีเมล (ใส่ "" เพื่อปิด)
   resultUnit: "mg%",
@@ -604,7 +635,7 @@ const I18N = {
     f_site:"ไซต์ / สถานที่ตรวจ", choose:"— เลือกไซต์ —", f_date:"วันที่ตรวจ", h_date:"รูปแบบ วัน/เดือน/ปี (ค.ศ.) เช่น 08/07/2026",
     f_type:"ประเภทบุคคล", pt_transport:"พนักงานขนส่ง", pt_transport_s:"มีทะเบียนรถ", pt_general:"พนักงานทั่วไป", pt_general_s:"ไม่มีทะเบียน",
     f_name:"ชื่อ-นามสกุล", f_company:"บริษัท / สังกัด", f_plate:"ทะเบียนรถ", h_plate:"รองรับทะเบียนไทย/อังกฤษ (ตัวอักษร ตัวเลข ขีด และจังหวัด)",
-    f_r1:"ผลครั้งที่ 1 (ค่าที่วัดได้)", h_unit:"หน่วยตามเครื่องวัด (เช่น mg%)", f_t1:"เวลาตรวจครั้งที่ 1 (24 ชม.)",
+    f_r1:"ผลครั้งที่ 1 (ค่าที่วัดได้)", h_unit:"หน่วยตามเครื่องวัด (เช่น mg%)", h_reading:"เลขจำนวนเต็ม 0–99 (mg%) · ถ้าเครื่องขึ้น HI ให้กดปุ่ม HI", f_t1:"เวลาตรวจครั้งที่ 1 (24 ชม.)",
     f_r2:"ผลครั้งที่ 2 (ยืนยันซ้ำ)", f_t2:"เวลาตรวจครั้งที่ 2 (24 ชม.)",
     ph_t:"แตะเพื่อถ่ายรูป หรือเลือกรูป", ph_s:"ผลตรวจ / เครื่องวัด · JPG PNG · บีบอัดอัตโนมัติ", remove:"ลบ",
     f_reporter:"เจ้าหน้าที่ รปภ. ผู้รายงาน", f_notes:"หมายเหตุเพิ่มเติม", optional:"(ไม่บังคับ)",
@@ -612,7 +643,7 @@ const I18N = {
     rev_t:"ตรวจสอบก่อนส่ง", hold_t:"กดค้างเพื่อยืนยันส่ง", hold_s:"กดค้างไว้ประมาณ 1 วินาที",
     done_t:"ส่งรายงานเรียบร้อย", done_p:"ระบบได้แจ้งเตือนไปยังผู้จัดการไซต์แล้ว", again:"+ รายงานเคสใหม่",
     confidential:"■ เอกสารลับ · สำหรับใช้ภายในเท่านั้น",
-    e_req:"กรุณากรอกข้อมูลนี้", e_num:"กรุณากรอกเป็นตัวเลข", e_plate:"กรุณากรอกทะเบียนรถให้ถูกต้อง", e_photo:"กรุณาแนบรูปหลักฐาน", e_time:"เวลาแบบ 24 ชม. 00:00–23:59 (เที่ยงคืน = 00:00)", e_date:"กรุณากรอกวันที่ให้ถูกต้อง (วว/ดด/ปปปป)",
+    e_req:"กรุณากรอกข้อมูลนี้", e_num:"กรอกค่าที่วัดได้ 0–99 หรือกดปุ่ม HI", e_plate:"กรุณากรอกทะเบียนรถให้ถูกต้อง", e_photo:"กรุณาแนบรูปหลักฐาน", e_time:"เวลาแบบ 24 ชม. 00:00–23:59 (เที่ยงคืน = 00:00)", e_date:"กรุณากรอกวันที่ให้ถูกต้อง (วว/ดด/ปปปป)",
     sev_pos:"ผลเป็นบวก — ต้องดำเนินการ", sev_elev:"สูงกว่าเกณฑ์ที่กำหนด",
     up_compress:"กำลังบีบอัดรูป…", up_uploading:"กำลังอัปโหลด…", up_done:"อัปโหลดสำเร็จ", up_fail:"อัปโหลดไม่สำเร็จ แตะเพื่อลองใหม่",
     load_upload:"กำลังอัปโหลดรูป…", load_send:"กำลังส่งรายงาน…",
@@ -633,7 +664,7 @@ const I18N = {
     f_site:"Site / Test Location", choose:"— Select site —", f_date:"Test date", h_date:"Format day/month/year e.g. 08/07/2026",
     f_type:"Person type", pt_transport:"Transport staff", pt_transport_s:"has plate", pt_general:"General staff", pt_general_s:"no plate",
     f_name:"Full name", f_company:"Company / Affiliation", f_plate:"License plate", h_plate:"Thai/English plates supported (letters, digits, dash, province)",
-    f_r1:"Reading #1 (measured value)", h_unit:"Unit per device (e.g. mg%)", f_t1:"Time of reading #1 (24h)",
+    f_r1:"Reading #1 (measured value)", h_unit:"Unit per device (e.g. mg%)", h_reading:"Whole number 0–99 (mg%) · tap HI if the device shows HI", f_t1:"Time of reading #1 (24h)",
     f_r2:"Reading #2 (confirmation)", f_t2:"Time of reading #2 (24h)",
     ph_t:"Tap to take a photo or choose", ph_s:"Result / device · JPG PNG · auto-compressed", remove:"Remove",
     f_reporter:"Reporting security officer", f_notes:"Additional notes", optional:"(optional)",
@@ -641,7 +672,7 @@ const I18N = {
     rev_t:"Review before sending", hold_t:"Hold to confirm & send", hold_s:"Press and hold ~1 second",
     done_t:"Report submitted", done_p:"The site manager has been notified.", again:"+ New report",
     confidential:"■ Confidential · Internal use only",
-    e_req:"This field is required", e_num:"Please enter a number", e_plate:"Please enter a valid plate", e_photo:"Please attach evidence", e_time:"24-hour time 00:00–23:59 (midnight = 00:00)", e_date:"Enter a valid date (dd/mm/yyyy)",
+    e_req:"This field is required", e_num:"Enter a reading 0–99 or tap HI", e_plate:"Please enter a valid plate", e_photo:"Please attach evidence", e_time:"24-hour time 00:00–23:59 (midnight = 00:00)", e_date:"Enter a valid date (dd/mm/yyyy)",
     sev_pos:"Positive result — action required", sev_elev:"Above configured threshold",
     up_compress:"Compressing image…", up_uploading:"Uploading…", up_done:"Uploaded", up_fail:"Upload failed — tap to retry",
     load_upload:"Uploading photo…", load_send:"Submitting report…",
@@ -735,7 +766,8 @@ function init(){
   $("langBtn").onclick = () => { lang = lang==="th"?"en":"th"; store && store.setItem("alc_lang",lang); applyLang(); };
   $("themeBtn").onclick = () => { theme = theme==="light"?"dark":"light"; store && store.setItem("alc_theme",theme); applyTheme(); };
   document.querySelectorAll('input[name="ptype"]').forEach(r => r.onchange = onTypeChange);
-  ["result1","result2"].forEach(id => $(id).addEventListener("input", updateSeverity));
+  ["result1","result2"].forEach(id => $(id).addEventListener("input", formatReading));
+  document.querySelectorAll(".hi-btn").forEach(b => b.onclick = () => toggleHI(b));
   ["time1","time2"].forEach(id => $(id).addEventListener("input", formatTime));
   $("testDate").addEventListener("input", formatDate);
   // เลือกจากปฏิทินเนทีฟ → เขียนกลับเป็น วว/ดด/ปปปป ในช่องพิมพ์
@@ -807,19 +839,45 @@ function onTypeChange(){
    SEVERITY (informational, configurable)
    ============================================================================ */
 function toNum(v){ const n = parseFloat(String(v).replace(",", ".")); return isNaN(n)?null:n; }
-function updateSeverity(){
-  const el = $("severity"), r1 = toNum($("result1").value), r2 = toNum($("result2").value);
-  const vals = [r1,r2].filter(x => x!==null);
-  if(!vals.length){ el.className="severity"; return; }
+function isHI(v){ return /^hi$/i.test(String(v).trim()); }
+// ค่าเชิงตัวเลขสำหรับเทียบเกณฑ์: HI = เกินสุด (Infinity), ว่าง/ไม่ใช่ตัวเลข = null
+function readingVal(v){ if(isHI(v)) return Infinity; return toNum(v); }
+function isElevated(){
+  const vals = [readingVal($("result1").value), readingVal($("result2").value)].filter(x => x!==null);
+  if(!vals.length) return null;
   const max = Math.max(...vals);
-  const elevated = CONFIG.criticalThreshold!=null && max >= CONFIG.criticalThreshold;
-  el.className = "severity show " + (elevated ? "elev" : "pos");
-  $("sevText").textContent = elevated ? t("sev_elev") : t("sev_pos");
+  return max===Infinity || (CONFIG.criticalThreshold!=null && max >= CONFIG.criticalThreshold);
+}
+function updateSeverity(){
+  const el = $("severity"), ev = isElevated();
+  if(ev===null){ el.className="severity"; return; }
+  el.className = "severity show " + (ev ? "elev" : "pos");
+  $("sevText").textContent = ev ? t("sev_elev") : t("sev_pos");
 }
 function severityValue(){
-  const vals = [toNum($("result1").value), toNum($("result2").value)].filter(x=>x!==null);
-  if(!vals.length) return "positive";
-  return (CONFIG.criticalThreshold!=null && Math.max(...vals) >= CONFIG.criticalThreshold) ? "elevated" : "positive";
+  const ev = isElevated();
+  return ev ? "elevated" : "positive";
+}
+// ปรับสถานะหน้าตาช่องผลตรวจให้ตรงกับค่าปัจจุบัน (unit mg%, ปุ่ม HI, disabled)
+function syncReading(id){
+  const el=$(id), v=el.value.trim(), hi=isHI(v);
+  const btn=document.querySelector('.hi-btn[data-target="'+id+'"]');
+  el.disabled=hi;
+  if(btn){ btn.classList.toggle("on", hi); btn.setAttribute("aria-pressed", hi?"true":"false"); }
+  const u=$("unit_"+id); if(u) u.classList.toggle("hide", hi || v==="");
+}
+// พิมพ์ได้แค่เลข 0–99 แล้วโชว์ mg% ต่อท้ายอัตโนมัติ
+function formatReading(e){
+  const el=e.target; if(el.disabled) return;
+  el.value = el.value.replace(/\D/g,"").slice(0,2);
+  syncReading(el.id); clearErr(el.id); updateSeverity();
+}
+// ปุ่ม HI: เครื่องเป่าขึ้น HI เมื่อเกิน 99
+function toggleHI(btn){
+  const id=btn.dataset.target, el=$(id), turnOn=!btn.classList.contains("on");
+  el.value = turnOn ? "HI" : "";
+  syncReading(id); clearErr(id); updateSeverity(); saveDraftDebounced();
+  if(!turnOn) el.focus();
 }
 
 /* ============================================================================
@@ -892,6 +950,8 @@ function clearPhoto(){
 const PLATE_RE = /^[ก-๙A-Za-z0-9][ก-๙A-Za-z0-9\s.\-]{1,28}$/;
 // เวลา 24 ชม. รูปแบบ HH:mm (00:00–23:59) — ใส่เลข 0 นำหน้าด้วย เช่น 08:15
 const TIME_RE = /^([01]\d|2[0-3]):[0-5]\d$/;
+// ผลตรวจแอลกอฮอล์: เลขจำนวนเต็ม 0–99 (mg%) หรือ "HI" (เครื่องขึ้น HI เมื่อเกิน 99)
+const READING_RE = /^([0-9]{1,2}|HI)$/i;
 // พิมพ์ตัวเลขแล้วใส่ ":" ให้อัตโนมัติ (0815 → 08:15) รองรับ backspace/paste
 // จำกัดค่าตั้งแต่พิมพ์: ชั่วโมงสูงสุด 23, นาทีสูงสุด 59 (เที่ยงคืน = 00:00, ห้าม 24:00 ขึ้นไป)
 function formatTime(e){
@@ -929,7 +989,8 @@ function validate(){
   if(isTransport){ const p=$("plate").value.trim(); if(!p || !PLATE_RE.test(p)){ showErr("plate"); bad.push("plate"); ok=false; } }
 
   // numeric readings
-  ["result1","result2"].forEach(id => { const v=$(id).value.trim(); if(v && toNum(v)===null){ clearErr(id); showErr(id); if(!bad.includes(id))bad.push(id); ok=false; } });
+  // ผลตรวจ: เลขจำนวนเต็ม 0–99 หรือ HI
+  ["result1","result2"].forEach(id => { const v=$(id).value.trim(); if(v && !READING_RE.test(v)){ clearErr(id); showErr(id); if(!bad.includes(id))bad.push(id); ok=false; } });
 
   // 24h time format (HH:mm)
   ["time1","time2"].forEach(id => { const v=$(id).value.trim(); if(v && !TIME_RE.test(v)){ clearErr(id); showErr(id); if(!bad.includes(id))bad.push(id); ok=false; } });
@@ -985,6 +1046,8 @@ function onReview(e){
 }
 function row(k,v,mono){ if(v==null||v==="") return ""; return `<div class="rev-row"><div class="rev-k">${k}</div><div class="rev-v${mono?" mono":""}">${escapeHtml(v)}</div></div>`; }
 function escapeHtml(s){ return String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
+// แสดงผลตรวจ: เติมหน่วย mg% ต่อท้ายเลข แต่ไม่เติมให้ค่า HI
+function fmtReading(v){ if(v==null||v==="") return ""; if(isHI(v)) return "HI"; return CONFIG.resultUnit ? `${v} ${CONFIG.resultUnit}` : `${v}`; }
 function buildReview(d){
   const rk=I18N[lang].rk, tv=I18N[lang].tv;
   const sev = d.severity==="elevated" ? t("sev_elev") : t("sev_pos");
@@ -996,9 +1059,8 @@ function buildReview(d){
   html += row(rk.name, d.fullName);
   html += row(rk.company, d.company);
   if(d.personType==="transport") html += row(rk.plate, d.licensePlate, true);
-  const u = CONFIG.resultUnit ? ` ${CONFIG.resultUnit}` : "";
-  html += row(rk.r1, `${d.result1}${u}  (${d.time1})`, true);
-  html += row(rk.r2, `${d.result2}${u}  (${d.time2})`, true);
+  html += row(rk.r1, `${fmtReading(d.result1)}  (${d.time1})`, true);
+  html += row(rk.r2, `${fmtReading(d.result2)}  (${d.time2})`, true);
   html += row(rk.sev, sev);
   html += row(rk.reporter, d.reporter);
   html += row(rk.notes, d.notes);
@@ -1097,6 +1159,7 @@ function restoreDraft(){
   if(d.ptype==="transport"){ $("pt_transport").checked=true; onTypeChange(); }
   else if(d.ptype==="general"){ $("pt_general").checked=true; onTypeChange(); }
   if(d.caseId){ caseId=d.caseId; $("caseIdDisplay").textContent=caseId; }
+  syncReading("result1"); syncReading("result2");
   updateSeverity();
   // ประกาศให้รู้ว่ามีร่างเก่าถูกกู้คืน — เครื่องป้อมใช้ร่วมกันหลายกะ
   // ถ้าไม่บอก กะถัดไปอาจส่งข้อมูลค้างของเคสก่อนโดยเข้าใจว่าเป็นเคสใหม่
@@ -1153,6 +1216,7 @@ function clearForm(){
   $("err_ptype").classList.remove("show"); $("err_photo").classList.remove("show");
   $("plateField").classList.remove("show");
   $("draftBanner").classList.remove("show");
+  ["result1","result2"].forEach(id=>{ $(id).disabled=false; $(id).value=""; syncReading(id); });
   $("testDate").value=todayDisplay();
   $("testDatePicker").value=todayLocal();
   clearDraft(); newCaseId();

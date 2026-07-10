@@ -47,11 +47,11 @@
       </tr>
       <tr>
         <td style="border:1px solid #e2e2e2;background:#fafafa;font-weight:bold;color:#444;">ผลครั้งที่ 1</td>
-        <td style="border:1px solid #e2e2e2;font-family:Consolas,monospace;">@{body('Parse_JSON')?['result1']} mg% &nbsp;(เวลา @{body('Parse_JSON')?['time1']})</td>
+        <td style="border:1px solid #e2e2e2;font-family:Consolas,monospace;">@{if(equals(toUpper(body('Parse_JSON')?['result1']),'HI'),'HI',concat(body('Parse_JSON')?['result1'],' mg%'))} &nbsp;(เวลา @{body('Parse_JSON')?['time1']})</td>
       </tr>
       <tr>
         <td style="border:1px solid #e2e2e2;background:#fafafa;font-weight:bold;color:#444;">ผลครั้งที่ 2</td>
-        <td style="border:1px solid #e2e2e2;font-family:Consolas,monospace;">@{body('Parse_JSON')?['result2']} mg% &nbsp;(เวลา @{body('Parse_JSON')?['time2']})</td>
+        <td style="border:1px solid #e2e2e2;font-family:Consolas,monospace;">@{if(equals(toUpper(body('Parse_JSON')?['result2']),'HI'),'HI',concat(body('Parse_JSON')?['result2'],' mg%'))} &nbsp;(เวลา @{body('Parse_JSON')?['time2']})</td>
       </tr>
       <tr>
         <td style="border:1px solid #e2e2e2;background:#fafafa;font-weight:bold;color:#444;">วันที่ตรวจ</td>
