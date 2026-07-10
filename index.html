@@ -612,7 +612,7 @@ const I18N = {
     rev_t:"ตรวจสอบก่อนส่ง", hold_t:"กดค้างเพื่อยืนยันส่ง", hold_s:"กดค้างไว้ประมาณ 1 วินาที",
     done_t:"ส่งรายงานเรียบร้อย", done_p:"ระบบได้แจ้งเตือนไปยังผู้จัดการไซต์แล้ว", again:"+ รายงานเคสใหม่",
     confidential:"■ เอกสารลับ · สำหรับใช้ภายในเท่านั้น",
-    e_req:"กรุณากรอกข้อมูลนี้", e_num:"กรุณากรอกเป็นตัวเลข", e_plate:"กรุณากรอกทะเบียนรถให้ถูกต้อง", e_photo:"กรุณาแนบรูปหลักฐาน", e_time:"กรุณากรอกเวลาแบบ 24 ชม. (HH:mm เช่น 08:15)", e_date:"กรุณากรอกวันที่ให้ถูกต้อง (วว/ดด/ปปปป)",
+    e_req:"กรุณากรอกข้อมูลนี้", e_num:"กรุณากรอกเป็นตัวเลข", e_plate:"กรุณากรอกทะเบียนรถให้ถูกต้อง", e_photo:"กรุณาแนบรูปหลักฐาน", e_time:"เวลาแบบ 24 ชม. 00:00–23:59 (เที่ยงคืน = 00:00)", e_date:"กรุณากรอกวันที่ให้ถูกต้อง (วว/ดด/ปปปป)",
     sev_pos:"ผลเป็นบวก — ต้องดำเนินการ", sev_elev:"สูงกว่าเกณฑ์ที่กำหนด",
     up_compress:"กำลังบีบอัดรูป…", up_uploading:"กำลังอัปโหลด…", up_done:"อัปโหลดสำเร็จ", up_fail:"อัปโหลดไม่สำเร็จ แตะเพื่อลองใหม่",
     load_upload:"กำลังอัปโหลดรูป…", load_send:"กำลังส่งรายงาน…",
@@ -641,7 +641,7 @@ const I18N = {
     rev_t:"Review before sending", hold_t:"Hold to confirm & send", hold_s:"Press and hold ~1 second",
     done_t:"Report submitted", done_p:"The site manager has been notified.", again:"+ New report",
     confidential:"■ Confidential · Internal use only",
-    e_req:"This field is required", e_num:"Please enter a number", e_plate:"Please enter a valid plate", e_photo:"Please attach evidence", e_time:"Use 24-hour format (HH:mm e.g. 08:15)", e_date:"Enter a valid date (dd/mm/yyyy)",
+    e_req:"This field is required", e_num:"Please enter a number", e_plate:"Please enter a valid plate", e_photo:"Please attach evidence", e_time:"24-hour time 00:00–23:59 (midnight = 00:00)", e_date:"Enter a valid date (dd/mm/yyyy)",
     sev_pos:"Positive result — action required", sev_elev:"Above configured threshold",
     up_compress:"Compressing image…", up_uploading:"Uploading…", up_done:"Uploaded", up_fail:"Upload failed — tap to retry",
     load_upload:"Uploading photo…", load_send:"Submitting report…",
@@ -893,9 +893,21 @@ const PLATE_RE = /^[ก-๙A-Za-z0-9][ก-๙A-Za-z0-9\s.\-]{1,28}$/;
 // เวลา 24 ชม. รูปแบบ HH:mm (00:00–23:59) — ใส่เลข 0 นำหน้าด้วย เช่น 08:15
 const TIME_RE = /^([01]\d|2[0-3]):[0-5]\d$/;
 // พิมพ์ตัวเลขแล้วใส่ ":" ให้อัตโนมัติ (0815 → 08:15) รองรับ backspace/paste
+// จำกัดค่าตั้งแต่พิมพ์: ชั่วโมงสูงสุด 23, นาทีสูงสุด 59 (เที่ยงคืน = 00:00, ห้าม 24:00 ขึ้นไป)
 function formatTime(e){
-  let v = e.target.value.replace(/\D/g,"").slice(0,4);
-  if(v.length >= 3) v = v.slice(0,2) + ":" + v.slice(2);
+  const d = e.target.value.replace(/\D/g,"").slice(0,4);
+  let v = d;
+  if(d.length >= 2){
+    let hh = d.slice(0,2);
+    if(+hh > 23) hh = "23";
+    if(d.length >= 3){
+      let mm = d.slice(2);
+      if(mm.length === 2 && +mm > 59) mm = "59";
+      v = hh + ":" + mm;
+    } else {
+      v = hh;
+    }
+  }
   e.target.value = v;
   clearErr(e.target.id);
 }
