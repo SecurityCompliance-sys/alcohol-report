@@ -797,7 +797,8 @@ function init(){
   document.querySelectorAll('input[name="ptype"]').forEach(r => r.onchange = onTypeChange);
   ["result1","result2"].forEach(id => $(id).addEventListener("input", formatReading));
   document.querySelectorAll(".hi-btn").forEach(b => b.onclick = () => toggleHI(b));
-  // combobox บริษัท/สังกัด
+  // combobox บริษัท/สังกัด — โหลดรายชื่อล่าสุดจาก companies.json + ค่าที่ admin บันทึกในเครื่องนี้
+  loadCompanies();
   $("company").addEventListener("focus", renderCombo);
   $("company").addEventListener("input", renderCombo);
   $("company").addEventListener("keydown", comboKeydown);
@@ -919,6 +920,33 @@ function toggleHI(btn){
    COMPANY COMBOBOX — พิมพ์ค้นหา + dropdown จาก CONFIG.companies
    (ไม่บังคับให้อยู่ในรายชื่อ — พิมพ์ชื่อใหม่เองได้ กันเคสผู้รับเหมา/รถร่วมเจ้าใหม่)
    ============================================================================ */
+// รวมหลายรายชื่อ ตัดว่าง+ตัดซ้ำ (ไม่สนตัวพิมพ์เล็กใหญ่) รักษาลำดับ
+function mergeCompanies(...lists){
+  const seen = new Set(), out = [];
+  lists.flat().forEach(c => {
+    c = String(c || "").trim();
+    const k = c.toLowerCase();
+    if(c && !seen.has(k)){ seen.add(k); out.push(c); }
+  });
+  return out;
+}
+// โหลดรายชื่อบริษัทจาก 3 แหล่งแล้วรวมกัน:
+// 1) companies.json ใน repo (แก้ไฟล์เดียว อัปเดตทุกเครื่อง ไม่ต้องแก้โค้ด)
+// 2) CONFIG.companies ที่ฝังในหน้า (fallback ตอนออฟไลน์)
+// 3) รายชื่อที่ admin บันทึกไว้ใน browser เครื่องเดียวกัน (เห็นผลทันที ไว้ทดสอบ)
+async function loadCompanies(){
+  let fileList = [];
+  try{
+    const r = await fetch("companies.json", { cache:"no-store" });
+    if(r.ok){ const j = await r.json(); if(Array.isArray(j)) fileList = j; }
+  }catch(_){ /* ออฟไลน์/ไม่มีไฟล์ → ใช้แหล่งอื่น */ }
+  let adminList = [];
+  try{
+    const c = JSON.parse((store && store.getItem("alc_admin_cfg")) || "null");
+    if(c && Array.isArray(c.companies)) adminList = c.companies;
+  }catch(_){}
+  CONFIG.companies = mergeCompanies(fileList, CONFIG.companies || [], adminList);
+}
 let comboActive = -1;
 function comboFilter(q){
   const list = Array.isArray(CONFIG.companies) ? CONFIG.companies : [];
