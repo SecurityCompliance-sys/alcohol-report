@@ -213,6 +213,26 @@ input.invalid,select.invalid,textarea.invalid{border-color:var(--hazard);backgro
 .hi-btn.on{background:var(--hazard);border-color:var(--hazard);color:#fff}
 .hi-btn:focus-visible{outline:2px solid var(--hazard);outline-offset:2px}
 
+/* combobox บริษัท/สังกัด: พิมพ์ค้นหา + dropdown (เลือกจากรายชื่อ หรือพิมพ์ค่าใหม่เองได้) */
+.combo{position:relative}
+.combo-list{
+  position:absolute;left:0;right:0;top:calc(100% + 4px);z-index:30;display:none;
+  background:var(--surface);border:1.5px solid var(--line-strong);border-radius:9px;
+  max-height:224px;overflow-y:auto;box-shadow:0 8px 22px var(--shadow);
+}
+.combo-list.show{display:block}
+.combo-item{
+  padding:11px 13px;font-size:14.5px;cursor:pointer;border-bottom:1px solid var(--line);
+  display:flex;align-items:center;gap:8px;
+}
+.combo-item:last-child{border-bottom:none}
+.combo-item:hover,.combo-item.active{background:var(--hazard-soft);color:var(--hazard)}
+.combo-item b{font-weight:700}
+.combo-empty{
+  padding:10px 13px;font-size:12.5px;color:var(--faint);cursor:default;
+  font-family:var(--font-body);border-bottom:none;
+}
+
 /* segmented person-type */
 .segment{display:grid;grid-template-columns:1fr 1fr;gap:11px}
 .segment label{
@@ -443,7 +463,12 @@ html[data-theme="dark"] .toast-mini{color:#121519}
           </div>
           <div class="field">
             <label class="lbl" for="company" data-i18n="f_company">บริษัท / สังกัด<span class="req">*</span></label>
-            <input type="text" id="company" maxlength="120" required placeholder="เช่น BevChain / บริษัทขนส่ง ก.">
+            <div class="combo">
+              <input type="text" id="company" maxlength="120" required placeholder="พิมพ์เพื่อค้นหา หรือเลือกจากรายชื่อ"
+                     role="combobox" aria-expanded="false" aria-controls="companyList" aria-autocomplete="list" autocomplete="off">
+              <div class="combo-list" id="companyList" role="listbox"></div>
+            </div>
+            <div class="hint" data-i18n="h_company">แตะเพื่อดูรายชื่อ · ถ้าไม่พบ พิมพ์ชื่อเองได้เลย</div>
             <div class="err" id="err_company" data-i18n="e_req">กรุณากรอกข้อมูลนี้</div>
           </div>
         </div>
@@ -612,6 +637,10 @@ const CONFIG = {
   // รายชื่อไซต์ — ต้องสะกดตรงกับคอลัมน์ Title ใน SharePoint routing list เป๊ะๆ
   sites: ["LLKDC", "NDC", "KKRDC", "BBT", "TW", "SBC"],
 
+  // รายชื่อบริษัท/สังกัด — โชว์เป็นตัวเลือกให้พิมพ์ค้นหาในฟอร์ม
+  // (จัดการรายชื่อ + import/export ได้ใน admin.html แท็บตั้งค่า · พิมพ์ค่าที่ไม่อยู่ในรายชื่อได้)
+  companies: ["BevChain"],
+
   // เกณฑ์ (ไม่บังคับ) หน่วย mg% — ค่า >= นี้จะติดป้าย "สูงกว่าเกณฑ์" (50 = เกณฑ์ผู้ขับขี่ตามกฎหมายไทย; ใส่ null เพื่อปิด · HI ถือว่าสูงกว่าเกณฑ์เสมอ)
   criticalThreshold: 50,
 
@@ -634,7 +663,7 @@ const I18N = {
     s1:"สถานที่และวันที่ตรวจ", s2:"ข้อมูลผู้ถูกตรวจ", s3:"ผลการตรวจวัด", s4:"รูปภาพหลักฐาน", s5:"ผู้รายงานและหมายเหตุ",
     f_site:"ไซต์ / สถานที่ตรวจ", choose:"— เลือกไซต์ —", f_date:"วันที่ตรวจ", h_date:"รูปแบบ วัน/เดือน/ปี (ค.ศ.) เช่น 08/07/2026",
     f_type:"ประเภทบุคคล", pt_transport:"พนักงานขนส่ง", pt_transport_s:"มีทะเบียนรถ", pt_general:"พนักงานทั่วไป", pt_general_s:"ไม่มีทะเบียน",
-    f_name:"ชื่อ-นามสกุล", f_company:"บริษัท / สังกัด", f_plate:"ทะเบียนรถ", h_plate:"รองรับทะเบียนไทย/อังกฤษ (ตัวอักษร ตัวเลข ขีด และจังหวัด)",
+    f_name:"ชื่อ-นามสกุล", f_company:"บริษัท / สังกัด", h_company:"แตะเพื่อดูรายชื่อ · ถ้าไม่พบ พิมพ์ชื่อเองได้เลย", combo_empty:"ไม่พบในรายชื่อ — ใช้ชื่อที่พิมพ์ได้เลย", f_plate:"ทะเบียนรถ", h_plate:"รองรับทะเบียนไทย/อังกฤษ (ตัวอักษร ตัวเลข ขีด และจังหวัด)",
     f_r1:"ผลครั้งที่ 1 (ค่าที่วัดได้)", h_unit:"หน่วยตามเครื่องวัด (เช่น mg%)", h_reading:"เลขจำนวนเต็ม 0–99 (mg%) · ถ้าเครื่องขึ้น HI ให้กดปุ่ม HI", f_t1:"เวลาตรวจครั้งที่ 1 (24 ชม.)",
     f_r2:"ผลครั้งที่ 2 (ยืนยันซ้ำ)", f_t2:"เวลาตรวจครั้งที่ 2 (24 ชม.)",
     ph_t:"แตะเพื่อถ่ายรูป หรือเลือกรูป", ph_s:"ผลตรวจ / เครื่องวัด · JPG PNG · บีบอัดอัตโนมัติ", remove:"ลบ",
@@ -663,7 +692,7 @@ const I18N = {
     s1:"Location & Test Date", s2:"Person Tested", s3:"Test Readings", s4:"Evidence Photo", s5:"Reporter & Notes",
     f_site:"Site / Test Location", choose:"— Select site —", f_date:"Test date", h_date:"Format day/month/year e.g. 08/07/2026",
     f_type:"Person type", pt_transport:"Transport staff", pt_transport_s:"has plate", pt_general:"General staff", pt_general_s:"no plate",
-    f_name:"Full name", f_company:"Company / Affiliation", f_plate:"License plate", h_plate:"Thai/English plates supported (letters, digits, dash, province)",
+    f_name:"Full name", f_company:"Company / Affiliation", h_company:"Tap to browse the list · type a new name if not found", combo_empty:"Not in the list — your typed name will be used", f_plate:"License plate", h_plate:"Thai/English plates supported (letters, digits, dash, province)",
     f_r1:"Reading #1 (measured value)", h_unit:"Unit per device (e.g. mg%)", h_reading:"Whole number 0–99 (mg%) · tap HI if the device shows HI", f_t1:"Time of reading #1 (24h)",
     f_r2:"Reading #2 (confirmation)", f_t2:"Time of reading #2 (24h)",
     ph_t:"Tap to take a photo or choose", ph_s:"Result / device · JPG PNG · auto-compressed", remove:"Remove",
@@ -768,6 +797,12 @@ function init(){
   document.querySelectorAll('input[name="ptype"]').forEach(r => r.onchange = onTypeChange);
   ["result1","result2"].forEach(id => $(id).addEventListener("input", formatReading));
   document.querySelectorAll(".hi-btn").forEach(b => b.onclick = () => toggleHI(b));
+  // combobox บริษัท/สังกัด
+  $("company").addEventListener("focus", renderCombo);
+  $("company").addEventListener("input", renderCombo);
+  $("company").addEventListener("keydown", comboKeydown);
+  $("company").addEventListener("blur", () => setTimeout(closeCombo, 120));
+  document.addEventListener("click", e => { if(!e.target.closest(".combo")) closeCombo(); });
   ["time1","time2"].forEach(id => $(id).addEventListener("input", formatTime));
   $("testDate").addEventListener("input", formatDate);
   // เลือกจากปฏิทินเนทีฟ → เขียนกลับเป็น วว/ดด/ปปปป ในช่องพิมพ์
@@ -878,6 +913,61 @@ function toggleHI(btn){
   el.value = turnOn ? "HI" : "";
   syncReading(id); clearErr(id); updateSeverity(); saveDraftDebounced();
   if(!turnOn) el.focus();
+}
+
+/* ============================================================================
+   COMPANY COMBOBOX — พิมพ์ค้นหา + dropdown จาก CONFIG.companies
+   (ไม่บังคับให้อยู่ในรายชื่อ — พิมพ์ชื่อใหม่เองได้ กันเคสผู้รับเหมา/รถร่วมเจ้าใหม่)
+   ============================================================================ */
+let comboActive = -1;
+function comboFilter(q){
+  const list = Array.isArray(CONFIG.companies) ? CONFIG.companies : [];
+  const s = q.trim().toLowerCase();
+  return (s ? list.filter(c => String(c).toLowerCase().includes(s)) : list.slice()).slice(0, 30);
+}
+function renderCombo(){
+  const box = $("companyList"), q = $("company").value;
+  const items = comboFilter(q);
+  comboActive = -1;
+  let html = items.map((c,i) => `<div class="combo-item" role="option" data-i="${i}">${escapeHtml(c)}</div>`).join("");
+  if(!items.length) html = `<div class="combo-item combo-empty">${escapeHtml(t("combo_empty"))}</div>`;
+  box.innerHTML = html;
+  box._items = items;
+  box.classList.add("show");
+  $("company").setAttribute("aria-expanded","true");
+  // mousedown กัน blur ก่อนคลิกติด · click = เลือก
+  box.querySelectorAll(".combo-item[data-i]").forEach(el => {
+    el.addEventListener("mousedown", ev => ev.preventDefault());
+    el.addEventListener("click", () => pickCompany(box._items[+el.dataset.i]));
+  });
+}
+function pickCompany(v){
+  $("company").value = v;
+  closeCombo(); clearErr("company"); saveDraftDebounced();
+}
+function closeCombo(){
+  $("companyList").classList.remove("show");
+  $("company").setAttribute("aria-expanded","false");
+  comboActive = -1;
+}
+function comboKeydown(e){
+  const box = $("companyList"), open = box.classList.contains("show");
+  const opts = open ? box.querySelectorAll(".combo-item[data-i]") : [];
+  if(e.key === "ArrowDown" || e.key === "ArrowUp"){
+    e.preventDefault();
+    if(!open){ renderCombo(); return; }
+    if(!opts.length) return;
+    comboActive = e.key === "ArrowDown"
+      ? (comboActive + 1) % opts.length
+      : (comboActive - 1 + opts.length) % opts.length;
+    opts.forEach((o,i) => o.classList.toggle("active", i === comboActive));
+    opts[comboActive].scrollIntoView({ block:"nearest" });
+  } else if(e.key === "Enter"){
+    if(open && comboActive >= 0 && opts[comboActive]){ e.preventDefault(); pickCompany(box._items[comboActive]); }
+    else if(open){ closeCombo(); }
+  } else if(e.key === "Escape" || e.key === "Tab"){
+    closeCombo();
+  }
 }
 
 /* ============================================================================

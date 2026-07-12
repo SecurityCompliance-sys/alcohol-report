@@ -248,6 +248,22 @@ html[data-theme="dark"] .toast{color:#121519}
     </div>
 
     <div class="card">
+      <div class="card-head"><span class="ic">🏢</span><h2>รายชื่อบริษัท / สังกัด</h2>
+        <div class="r">
+          <button class="btn sm" id="importCompaniesBtn">⬆ นำเข้า</button>
+          <button class="btn sm" id="exportCompanies">⬇ CSV</button>
+          <input type="file" id="importCompanies" accept=".csv,.txt,.json,text/plain,text/csv,application/json" hidden>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="card-desc">รายชื่อนี้จะโชว์เป็นตัวเลือกให้ รปภ. <b>พิมพ์ค้นหา</b> ในช่อง "บริษัท / สังกัด" ของฟอร์ม — <b>พิมพ์บรรทัดละ 1 ชื่อ</b> (วางจาก Excel ได้เลย) · ฟอร์มยังอนุญาตให้พิมพ์ชื่อที่ไม่อยู่ในรายชื่อได้ จึงไม่ต้องกลัวรายชื่อไม่ครบ</div>
+        <textarea class="inp mono" id="cfg_companies" rows="8" placeholder="BevChain&#10;บริษัทขนส่ง ก.&#10;บริษัทขนส่ง ข." style="min-height:150px"></textarea>
+        <div class="hlp" id="companiesCount" style="margin-top:6px"></div>
+        <div class="hlp">นำเข้าไฟล์ .csv / .txt (บรรทัดละชื่อ) หรือ .json (array) — รายชื่อใหม่จะถูก<b>เพิ่มต่อท้าย</b>โดยข้ามชื่อซ้ำ · เสร็จแล้วกด "💾 บันทึกการตั้งค่า" และสร้าง CONFIG ใหม่ไปวางในฟอร์ม</div>
+      </div>
+    </div>
+
+    <div class="card">
       <div class="card-head"><span class="ic">🎚️</span><h2>นโยบายและรูปภาพ</h2></div>
       <div class="card-body">
         <div class="grid2">
@@ -406,6 +422,7 @@ const DEFAULT_CFG = {
   webhookUrl:"", sharedToken:"",
   cloudName:"diiqvxqqd", uploadPreset:"alcohol_report", photoFolder:"alcohol_reports",
   sites:["LLKDC","NDC","KKRDC","BBT","TW","SBC"],
+  companies:["BevChain"],
   criticalThreshold:50, resultUnit:"mg%", appVersion:"1.0.0", maxImageDim:1600, imageQuality:0.82
 };
 let cfg = {}, routes = [], reportCfg = {};
@@ -478,6 +495,7 @@ function fillConfig(){
   $("cfg_cloud").value=cfg.cloudName||""; $("cfg_preset").value=cfg.uploadPreset||""; $("cfg_folder").value=cfg.photoFolder||"";
   $("cfg_threshold").value=cfg.criticalThreshold==null?"":cfg.criticalThreshold;
   $("cfg_unit").value=cfg.resultUnit==null?"":cfg.resultUnit;
+  $("cfg_companies").value=(cfg.companies||[]).join("\n"); updateCompaniesCount();
   $("cfg_version").value=cfg.appVersion||""; $("cfg_maxdim").value=cfg.maxImageDim||1600; $("cfg_quality").value=cfg.imageQuality||0.82;
 }
 function readConfig(){
@@ -485,8 +503,41 @@ function readConfig(){
   cfg.cloudName=$("cfg_cloud").value.trim(); cfg.uploadPreset=$("cfg_preset").value.trim(); cfg.photoFolder=$("cfg_folder").value.trim();
   const th=$("cfg_threshold").value.trim(); cfg.criticalThreshold = th==="" ? null : (isNaN(parseFloat(th))?null:parseFloat(th));
   cfg.resultUnit=$("cfg_unit").value.trim();
+  cfg.companies=parseCompanies($("cfg_companies").value);
   cfg.appVersion=$("cfg_version").value.trim()||"1.0.0";
   cfg.maxImageDim=parseInt($("cfg_maxdim").value)||1600; cfg.imageQuality=parseFloat($("cfg_quality").value)||0.82;
+}
+/* ---- รายชื่อบริษัท: บรรทัดละชื่อ → array (ตัดว่าง + ตัดซ้ำแบบไม่สนตัวพิมพ์) ---- */
+function parseCompanies(text){
+  const seen=new Set(), out=[];
+  String(text||"").split(/\r?\n/).map(s=>s.trim()).filter(Boolean).forEach(c=>{
+    const k=c.toLowerCase(); if(!seen.has(k)){ seen.add(k); out.push(c); }
+  });
+  return out;
+}
+function updateCompaniesCount(){
+  const n=parseCompanies($("cfg_companies").value).length;
+  $("companiesCount").textContent = n ? `🏢 ${n} บริษัทในรายชื่อ` : "ยังไม่มีรายชื่อ — ช่องในฟอร์มจะเป็นช่องพิมพ์ปกติ";
+}
+function importCompaniesFile(file){
+  const rd=new FileReader();
+  rd.onload=()=>{
+    let names=[];
+    const raw=String(rd.result||"");
+    try{ const j=JSON.parse(raw); if(Array.isArray(j)) names=j.map(String); }catch(_){}
+    if(!names.length){
+      // .txt/.csv: บรรทัดละชื่อ (ถ้ามี , หรือ ; ใช้คอลัมน์แรก) · ข้ามหัวตาราง "company"
+      names=raw.split(/\r?\n/).map(l=>l.replace(/^\uFEFF/,"").split(/[,;]/)[0].trim().replace(/^"|"$/g,"")).filter(Boolean)
+               .filter(c=>!/^(company|companies|บริษัท)$/i.test(c));
+    }
+    if(!names.length){ toast("ไม่พบรายชื่อในไฟล์",true); return; }
+    const current=parseCompanies($("cfg_companies").value);
+    const merged=parseCompanies(current.concat(names).join("\n"));
+    const added=merged.length-current.length;
+    $("cfg_companies").value=merged.join("\n"); updateCompaniesCount();
+    toast(added ? `เพิ่ม ${added} รายชื่อใหม่ (ข้ามซ้ำ ${names.length-added}) — อย่าลืมกดบันทึก` : "ทุกชื่อมีอยู่แล้ว ไม่มีรายการใหม่", !added);
+  };
+  rd.readAsText(file);
 }
 function renderSites(){
   const box=$("siteChips"); box.innerHTML="";
@@ -500,6 +551,7 @@ function renderHealth(){
     item(!!cfg.sharedToken,"Token") +
     item(!!cfg.cloudName && !!cfg.uploadPreset,"Cloudinary") +
     `<span class="badge info">📍 ${cfg.sites.length} ไซต์</span>` +
+    `<span class="badge info">🏢 ${(cfg.companies||[]).length} บริษัท</span>` +
     `<span class="badge ${routes.filter(r=>r.manager).length===cfg.sites.length?'ok':'no'}">🗂️ ${routes.filter(r=>r.manager).length}/${cfg.sites.length} route</span>`;
 }
 function configBlock(){
@@ -511,6 +563,7 @@ function configBlock(){
   cloudinary: { cloudName: ${JSON.stringify(cfg.cloudName)}, uploadPreset: ${JSON.stringify(cfg.uploadPreset)} },
   photoFolder: ${JSON.stringify(cfg.photoFolder)},
   sites: ${JSON.stringify(cfg.sites)},
+  companies: ${JSON.stringify(cfg.companies||[])},
   criticalThreshold: ${ct},
   resultUnit: ${JSON.stringify(cfg.resultUnit ?? "")},
   maxImageDim: ${Number(cfg.maxImageDim)||1600},
@@ -627,10 +680,16 @@ function init(){
   $("refreshHealth").onclick=()=>{ readConfig(); renderHealth(); };
   $("addSite").onclick=()=>{ const v=$("newSite").value.trim(); if(!v) return; if(cfg.sites.includes(v)){ toast("มีไซต์นี้แล้ว",true); return; } cfg.sites.push(v); $("newSite").value=""; renderSites(); syncRouteSites(); renderHealth(); };
   $("newSite").addEventListener("keydown",e=>{ if(e.key==="Enter"){ e.preventDefault(); $("addSite").click(); } });
+
+  // รายชื่อบริษัท
+  $("cfg_companies").addEventListener("input", updateCompaniesCount);
+  $("importCompaniesBtn").onclick=()=>$("importCompanies").click();
+  $("importCompanies").onchange=e=>{ const f=e.target.files[0]; if(f) importCompaniesFile(f); e.target.value=""; };
+  $("exportCompanies").onclick=()=>{ const a=parseCompanies($("cfg_companies").value); if(!a.length){ toast("ยังไม่มีรายชื่อให้ส่งออก",true); return; } download("companies.csv","\uFEFF"+a.map(csvCell).join("\n"),"text/csv;charset=utf-8"); };
   $("saveCfg").onclick=()=>{ readConfig(); save("alc_admin_cfg",cfg); renderHealth(); toast("บันทึกการตั้งค่าแล้ว ✓"); };
   $("exportCfg").onclick=()=>{ readConfig(); download("alcohol_config.json", JSON.stringify(cfg,null,2), "application/json"); };
   $("importCfgBtn").onclick=()=>$("importCfg").click();
-  $("importCfg").onchange=e=>{ const f=e.target.files[0]; if(!f) return; const rd=new FileReader(); rd.onload=()=>{ try{ const o=JSON.parse(rd.result); cfg=Object.assign({},DEFAULT_CFG,o); if(!Array.isArray(cfg.sites)) cfg.sites=DEFAULT_CFG.sites.slice(); fillConfig(); renderSites(); renderHealth(); toast("นำเข้าแล้ว — อย่าลืมกดบันทึก"); }catch(_){ toast("ไฟล์ JSON ไม่ถูกต้อง",true); } }; rd.readAsText(f); e.target.value=""; };
+  $("importCfg").onchange=e=>{ const f=e.target.files[0]; if(!f) return; const rd=new FileReader(); rd.onload=()=>{ try{ const o=JSON.parse(rd.result); cfg=Object.assign({},DEFAULT_CFG,o); if(!Array.isArray(cfg.sites)) cfg.sites=DEFAULT_CFG.sites.slice(); if(!Array.isArray(cfg.companies)) cfg.companies=DEFAULT_CFG.companies.slice(); fillConfig(); renderSites(); renderHealth(); toast("นำเข้าแล้ว — อย่าลืมกดบันทึก"); }catch(_){ toast("ไฟล์ JSON ไม่ถูกต้อง",true); } }; rd.readAsText(f); e.target.value=""; };
   $("genCfg").onclick=()=>{ readConfig(); const el=$("cfgBlock"); el.textContent=configBlock(); el.style.display="block"; $("copyCfg").style.display="inline-flex"; };
   $("copyCfg").onclick=()=>copyText($("cfgBlock").textContent);
 
