@@ -505,7 +505,10 @@ function readConfig(){
   cfg.cloudName=$("cfg_cloud").value.trim(); cfg.uploadPreset=$("cfg_preset").value.trim(); cfg.photoFolder=$("cfg_folder").value.trim();
   const th=$("cfg_threshold").value.trim(); cfg.criticalThreshold = th==="" ? null : (isNaN(parseFloat(th))?null:parseFloat(th));
   cfg.resultUnit=$("cfg_unit").value.trim();
+  // ประทับเวลาเฉพาะตอนรายชื่อบริษัทเปลี่ยนจริง — ฟอร์มใช้เทียบว่าแหล่งไหนใหม่กว่า (localStorage vs companies.json)
+  const prevCompanies=JSON.stringify(cfg.companies||[]);
   cfg.companies=parseCompanies($("cfg_companies").value);
+  if(JSON.stringify(cfg.companies)!==prevCompanies) cfg.companiesUpdatedAt=Date.now();
   cfg.appVersion=$("cfg_version").value.trim()||"1.0.0";
   cfg.maxImageDim=parseInt($("cfg_maxdim").value)||1600; cfg.imageQuality=parseFloat($("cfg_quality").value)||0.82;
 }
@@ -526,7 +529,7 @@ function importCompaniesFile(file){
   rd.onload=()=>{
     let names=[];
     const raw=String(rd.result||"");
-    try{ const j=JSON.parse(raw); if(Array.isArray(j)) names=j.map(String); }catch(_){}
+    try{ const j=JSON.parse(raw); if(Array.isArray(j)) names=j.map(String); else if(j&&Array.isArray(j.companies)) names=j.companies.map(String); }catch(_){}
     if(!names.length){
       // .txt/.csv: บรรทัดละชื่อ (ถ้ามี , หรือ ; ใช้คอลัมน์แรก) · ข้ามหัวตาราง "company"
       names=raw.split(/\r?\n/).map(l=>l.replace(/^\uFEFF/,"").split(/[,;]/)[0].trim().replace(/^"|"$/g,"")).filter(Boolean)
@@ -688,7 +691,7 @@ function init(){
   $("importCompaniesBtn").onclick=()=>$("importCompanies").click();
   $("importCompanies").onchange=e=>{ const f=e.target.files[0]; if(f) importCompaniesFile(f); e.target.value=""; };
   $("exportCompanies").onclick=()=>{ const a=parseCompanies($("cfg_companies").value); if(!a.length){ toast("ยังไม่มีรายชื่อให้ส่งออก",true); return; } download("companies.csv","\uFEFF"+a.map(csvCell).join("\n"),"text/csv;charset=utf-8"); };
-  $("exportCompaniesJson").onclick=()=>{ const a=parseCompanies($("cfg_companies").value); if(!a.length){ toast("\u0E22\u0E31\u0E07\u0E44\u0E21\u0E48\u0E21\u0E35\u0E23\u0E32\u0E22\u0E0A\u0E37\u0E48\u0E2D\u0E43\u0E2B\u0E49\u0E2A\u0E48\u0E07\u0E2D\u0E2D\u0E01",true); return; } download("companies.json",JSON.stringify(a,null,2)+"\n","application/json"); toast("\u0E44\u0E14\u0E49\u0E44\u0E1F\u0E25\u0E4C\u0E41\u0E25\u0E49\u0E27 \u2014 \u0E2D\u0E31\u0E1B\u0E42\u0E2B\u0E25\u0E14\u0E41\u0E17\u0E19\u0E17\u0E35\u0E48\u0E44\u0E1F\u0E25\u0E4C\u0E40\u0E14\u0E34\u0E21\u0E43\u0E19 repo \u0E40\u0E1E\u0E37\u0E48\u0E2D\u0E2D\u0E31\u0E1B\u0E40\u0E14\u0E15\u0E17\u0E38\u0E01\u0E40\u0E04\u0E23\u0E37\u0E48\u0E2D\u0E07"); };
+  $("exportCompaniesJson").onclick=()=>{ const a=parseCompanies($("cfg_companies").value); if(!a.length){ toast("\u0E22\u0E31\u0E07\u0E44\u0E21\u0E48\u0E21\u0E35\u0E23\u0E32\u0E22\u0E0A\u0E37\u0E48\u0E2D\u0E43\u0E2B\u0E49\u0E2A\u0E48\u0E07\u0E2D\u0E2D\u0E01",true); return; } download("companies.json",JSON.stringify({updatedAt:Date.now(),companies:a},null,2)+"\n","application/json"); toast("\u0E44\u0E14\u0E49\u0E44\u0E1F\u0E25\u0E4C\u0E41\u0E25\u0E49\u0E27 \u2014 \u0E2D\u0E31\u0E1B\u0E42\u0E2B\u0E25\u0E14\u0E41\u0E17\u0E19\u0E17\u0E35\u0E48\u0E44\u0E1F\u0E25\u0E4C\u0E40\u0E14\u0E34\u0E21\u0E43\u0E19 repo \u0E40\u0E1E\u0E37\u0E48\u0E2D\u0E2D\u0E31\u0E1B\u0E40\u0E14\u0E15\u0E17\u0E38\u0E01\u0E40\u0E04\u0E23\u0E37\u0E48\u0E2D\u0E07"); };
   $("saveCfg").onclick=()=>{ readConfig(); save("alc_admin_cfg",cfg); renderHealth(); toast("บันทึกการตั้งค่าแล้ว ✓"); };
   $("exportCfg").onclick=()=>{ readConfig(); download("alcohol_config.json", JSON.stringify(cfg,null,2), "application/json"); };
   $("importCfgBtn").onclick=()=>$("importCfg").click();

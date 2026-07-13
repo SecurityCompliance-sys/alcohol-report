@@ -930,22 +930,28 @@ function mergeCompanies(...lists){
   });
   return out;
 }
-// โหลดรายชื่อบริษัทจาก 3 แหล่งแล้วรวมกัน:
-// 1) companies.json ใน repo (แก้ไฟล์เดียว อัปเดตทุกเครื่อง ไม่ต้องแก้โค้ด)
-// 2) CONFIG.companies ที่ฝังในหน้า (fallback ตอนออฟไลน์)
-// 3) รายชื่อที่ admin บันทึกไว้ใน browser เครื่องเดียวกัน (เห็นผลทันที ไว้ทดสอบ)
+// โหลดรายชื่อบริษัท — เลือก "แหล่งที่อัปเดตล่าสุด" เพียงแหล่งเดียว (ห้ามรวมทุกแหล่ง
+// ไม่งั้นชื่อที่ถูกลบ/เปลี่ยนจะโดนชื่อเก่าจากอีกแหล่งดันกลับมาไม่มีวันหาย):
+// - companies.json ใน repo (รูปแบบใหม่มี updatedAt · รูปแบบเก่าเป็น array เฉยๆ ก็อ่านได้)
+// - รายชื่อที่ admin บันทึกใน browser เครื่องเดียวกัน (มี companiesUpdatedAt)
+// - CONFIG.companies ที่ฝังในหน้า = fallback สุดท้ายตอนออฟไลน์/ไม่มีทั้งสองแหล่ง
 async function loadCompanies(){
-  let fileList = [];
+  let file = null;
   try{
     const r = await fetch("companies.json", { cache:"no-store" });
-    if(r.ok){ const j = await r.json(); if(Array.isArray(j)) fileList = j; }
-  }catch(_){ /* ออฟไลน์/ไม่มีไฟล์ → ใช้แหล่งอื่น */ }
-  let adminList = [];
+    if(r.ok){
+      const j = await r.json();
+      if(Array.isArray(j)) file = { ts:1, list:j };                                  // รูปแบบเก่า
+      else if(j && Array.isArray(j.companies)) file = { ts:+j.updatedAt||1, list:j.companies };
+    }
+  }catch(_){ /* ออฟไลน์/ไม่มีไฟล์ */ }
+  let admin = null;
   try{
     const c = JSON.parse((store && store.getItem("alc_admin_cfg")) || "null");
-    if(c && Array.isArray(c.companies)) adminList = c.companies;
+    if(c && Array.isArray(c.companies)) admin = { ts:+c.companiesUpdatedAt||0, list:c.companies };
   }catch(_){}
-  CONFIG.companies = mergeCompanies(fileList, CONFIG.companies || [], adminList);
+  const src = (file && admin) ? (admin.ts > file.ts ? admin : file) : (admin || file);
+  CONFIG.companies = mergeCompanies(src ? src.list : (CONFIG.companies || []));
 }
 let comboActive = -1;
 function comboFilter(q){
