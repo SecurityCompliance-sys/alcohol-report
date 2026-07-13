@@ -126,10 +126,12 @@ header.app{
 /* ============================= SECTIONS ============================= */
 .section{
   background:var(--surface);border:1.5px solid var(--line);border-radius:12px;
-  margin-bottom:16px;overflow:hidden;
+  margin-bottom:16px;
   box-shadow:0 1px 2px var(--shadow);
   opacity:0;transform:translateY(10px);animation:rise .5s forwards;
 }
+/* ห้ามใส่ overflow:hidden ที่ .section — จะตัด dropdown ของ combobox ที่ยื่นออกนอกการ์ด
+   ขอบมนของหัวการ์ดใช้ border-radius ที่ .sec-head แทน */
 @keyframes rise{to{opacity:1;transform:none}}
 .section:nth-child(1){animation-delay:.03s}
 .section:nth-child(2){animation-delay:.09s}
@@ -138,7 +140,7 @@ header.app{
 .section:nth-child(5){animation-delay:.27s}
 .sec-head{
   display:flex;align-items:center;gap:11px;padding:13px 16px;border-bottom:1.5px solid var(--line);
-  background:var(--surface-2);
+  background:var(--surface-2);border-radius:10.5px 10.5px 0 0;
 }
 .sec-num{
   font-family:var(--font-mono);font-size:12px;font-weight:500;
@@ -216,7 +218,7 @@ input.invalid,select.invalid,textarea.invalid{border-color:var(--hazard);backgro
 /* combobox บริษัท/สังกัด: พิมพ์ค้นหา + dropdown (เลือกจากรายชื่อ หรือพิมพ์ค่าใหม่เองได้) */
 .combo{position:relative}
 .combo-list{
-  position:absolute;left:0;right:0;top:calc(100% + 4px);z-index:30;display:none;
+  position:absolute;left:0;right:0;top:calc(100% + 4px);z-index:45;display:none;
   background:var(--surface);border:1.5px solid var(--line-strong);border-radius:9px;
   max-height:224px;overflow-y:auto;box-shadow:0 8px 22px var(--shadow);
 }
