@@ -217,8 +217,10 @@ input.invalid,select.invalid,textarea.invalid{border-color:var(--hazard);backgro
 
 /* combobox บริษัท/สังกัด: พิมพ์ค้นหา + dropdown (เลือกจากรายชื่อ หรือพิมพ์ค่าใหม่เองได้) */
 .combo{position:relative}
+/* แผงรายชื่อใช้ position:fixed + ย้ายไปเกาะ body — ไม่มีทางโดน overflow ของการ์ดไหนตัด
+   ตำแหน่ง/ความกว้างคำนวณจากช่อง input ด้วย JS (positionCombo) */
 .combo-list{
-  position:absolute;left:0;right:0;top:calc(100% + 4px);z-index:45;display:none;
+  position:fixed;z-index:60;display:none;
   background:var(--surface);border:1.5px solid var(--line-strong);border-radius:9px;
   max-height:224px;overflow-y:auto;box-shadow:0 8px 22px var(--shadow);
 }
@@ -801,11 +803,18 @@ function init(){
   document.querySelectorAll(".hi-btn").forEach(b => b.onclick = () => toggleHI(b));
   // combobox บริษัท/สังกัด — โหลดรายชื่อล่าสุดจาก companies.json + ค่าที่ admin บันทึกในเครื่องนี้
   loadCompanies();
+  // ย้ายแผงรายชื่อไปเกาะ body — พ้นจาก overflow/stacking ของการ์ดทุกใบ
+  document.body.appendChild($("companyList"));
   $("company").addEventListener("focus", renderCombo);
   $("company").addEventListener("input", renderCombo);
   $("company").addEventListener("keydown", comboKeydown);
   $("company").addEventListener("blur", () => setTimeout(closeCombo, 120));
-  document.addEventListener("click", e => { if(!e.target.closest(".combo")) closeCombo(); });
+  document.addEventListener("click", e => { if(!e.target.closest(".combo") && !e.target.closest("#companyList")) closeCombo(); });
+  // เลื่อนหน้า/คีย์บอร์ดเด้ง → ขยับแผงตามช่อง input
+  const repos = () => { if($("companyList").classList.contains("show")) positionCombo(); };
+  window.addEventListener("scroll", repos, { passive:true });
+  window.addEventListener("resize", repos);
+  if(window.visualViewport){ visualViewport.addEventListener("resize", repos); visualViewport.addEventListener("scroll", repos); }
   ["time1","time2"].forEach(id => $(id).addEventListener("input", formatTime));
   $("testDate").addEventListener("input", formatDate);
   // เลือกจากปฏิทินเนทีฟ → เขียนกลับเป็น วว/ดด/ปปปป ในช่องพิมพ์
@@ -961,6 +970,23 @@ function comboFilter(q){
   const s = q.trim().toLowerCase();
   return (s ? list.filter(c => String(c).toLowerCase().includes(s)) : list.slice()).slice(0, 30);
 }
+// วางแผงรายชื่อใต้ช่อง input (หรือเหนือช่อง ถ้าที่ด้านล่างเหลือน้อย เช่นคีย์บอร์ดมือถือบัง)
+function positionCombo(){
+  const box = $("companyList"), r = $("company").getBoundingClientRect();
+  const vh = (window.visualViewport && visualViewport.height) || window.innerHeight;
+  const below = vh - r.bottom, above = r.top;
+  box.style.left = r.left + "px";
+  box.style.width = r.width + "px";
+  if(below < 150 && above > below){
+    box.style.top = "auto";
+    box.style.bottom = (window.innerHeight - r.top + 4) + "px";
+    box.style.maxHeight = Math.min(224, above - 12) + "px";
+  } else {
+    box.style.bottom = "auto";
+    box.style.top = (r.bottom + 4) + "px";
+    box.style.maxHeight = Math.min(224, Math.max(90, below - 12)) + "px";
+  }
+}
 function renderCombo(){
   const box = $("companyList"), q = $("company").value;
   const items = comboFilter(q);
@@ -969,6 +995,7 @@ function renderCombo(){
   if(!items.length) html = `<div class="combo-item combo-empty">${escapeHtml(t("combo_empty"))}</div>`;
   box.innerHTML = html;
   box._items = items;
+  positionCombo();
   box.classList.add("show");
   $("company").setAttribute("aria-expanded","true");
   // mousedown กัน blur ก่อนคลิกติด · click = เลือก
