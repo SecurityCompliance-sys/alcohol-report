@@ -37,10 +37,11 @@ const FIELD_MAX = {
 };
 
 // sanitize ฝั่ง server — client sanitize ถูก bypass ได้โดยยิงตรงเข้า Worker
-// (อีเมลแจ้งเตือนแทรกค่าเหล่านี้ลง HTML แบบดิบ จึงต้องตัด <> ที่นี่ด้วย)
+// (อีเมลแจ้งเตือนแทรกค่าเหล่านี้ลง HTML แบบดิบ ทั้งใน text และ attribute เช่น href
+//  จึงต้องตัดทั้ง <> " ' ` และ control chars เพื่อกันแตก tag/attribute)
 function clean(v, max) {
   return String(v ?? "")
-    .replace(/[<>]/g, "")
+    .replace(/[<>"'`]/g, "")
     .replace(/[\u0000-\u001F\u007F]/g, "")
     .trim().slice(0, max);
 }
@@ -77,7 +78,7 @@ export default {
     // 5.1) photoUrl ต้องเป็นลิงก์ Cloudinary เท่านั้น — URL นี้กลายเป็นปุ่ม
     //      "ดูรูปหลักฐาน" ในอีเมลผู้จัดการ ถ้าไม่ล็อกโฮสต์ คนที่ถือ CLIENT_TOKEN
     //      ยิงตรงเข้า Worker แล้วสอดลิงก์ phishing ได้
-    if (!/^https:\/\/res\.cloudinary\.com\//.test(String(payload.photoUrl)))
+    if (!/^https:\/\/res\.cloudinary\.com\/[A-Za-z0-9/._~:?#\[\]@!$&()*+,;=%-]+$/.test(String(payload.photoUrl)))
       return json({ error: "invalid_photo_url" }, 422, cors);
 
     if (!env.FLOW_URL || !env.FLOW_SECRET)
