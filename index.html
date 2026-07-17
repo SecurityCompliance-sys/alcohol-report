@@ -433,7 +433,7 @@ html[data-theme="dark"] .toast-mini{color:#121519}
           <div class="field">
             <label class="lbl" for="testDate" data-i18n="f_date">วันที่ตรวจ<span class="req">*</span></label>
             <div class="date-wrap">
-              <input type="text" id="testDate" class="mono-in" inputmode="numeric" maxlength="10" autocomplete="off" placeholder="วว/ดด/ปปปป" required>
+              <input type="text" id="testDate" class="mono-in" inputmode="numeric" maxlength="10" autocomplete="off" placeholder="วว/ดด/ปปปป" data-i18n-ph="ph_date" required>
               <span class="date-ic" aria-hidden="true">📅</span>
               <input type="date" id="testDatePicker" tabindex="-1" aria-label="เลือกวันที่จากปฏิทิน">
             </div>
@@ -462,13 +462,13 @@ html[data-theme="dark"] .toast-mini{color:#121519}
         <div class="grid-2">
           <div class="field">
             <label class="lbl" for="fullName" data-i18n="f_name">ชื่อ-นามสกุล<span class="req">*</span></label>
-            <input type="text" id="fullName" maxlength="120" required placeholder="เช่น สมชาย ใจดี">
+            <input type="text" id="fullName" maxlength="120" required placeholder="เช่น สมชาย ใจดี" data-i18n-ph="ph_name">
             <div class="err" id="err_fullName" data-i18n="e_req">กรุณากรอกข้อมูลนี้</div>
           </div>
           <div class="field">
             <label class="lbl" for="company" data-i18n="f_company">บริษัท / สังกัด<span class="req">*</span></label>
             <div class="combo">
-              <input type="text" id="company" maxlength="120" required placeholder="พิมพ์เพื่อค้นหา หรือเลือกจากรายชื่อ"
+              <input type="text" id="company" maxlength="120" required placeholder="พิมพ์เพื่อค้นหา หรือเลือกจากรายชื่อ" data-i18n-ph="ph_company"
                      role="combobox" aria-expanded="false" aria-controls="companyList" aria-autocomplete="list" autocomplete="off">
               <div class="combo-list" id="companyList" role="listbox"></div>
             </div>
@@ -479,7 +479,7 @@ html[data-theme="dark"] .toast-mini{color:#121519}
 
         <div class="field" id="plateField">
           <label class="lbl" for="plate" data-i18n="f_plate">ทะเบียนรถ<span class="req">*</span></label>
-          <input type="text" id="plate" maxlength="30" class="mono-in" placeholder="เช่น 70-1234 กทม / 1กก 5678">
+          <input type="text" id="plate" maxlength="30" class="mono-in" placeholder="เช่น 70-1234 กทม / 1กก 5678" data-i18n-ph="ph_plate">
           <div class="hint" data-i18n="h_plate">รองรับทะเบียนไทย/อังกฤษ (ตัวอักษร ตัวเลข ขีด และจังหวัด)</div>
           <div class="err" id="err_plate" data-i18n="e_plate">กรุณากรอกทะเบียนรถให้ถูกต้อง</div>
         </div>
@@ -495,7 +495,7 @@ html[data-theme="dark"] .toast-mini{color:#121519}
             <label class="lbl" for="result1" data-i18n="f_r1">ผลครั้งที่ 1 (ค่าที่วัดได้)<span class="req">*</span></label>
             <div class="reading">
               <div class="reading-in">
-                <input type="text" id="result1" inputmode="numeric" maxlength="2" class="mono-in" required placeholder="เช่น 45">
+                <input type="text" id="result1" inputmode="numeric" maxlength="2" class="mono-in" required placeholder="เช่น 45" data-i18n-ph="ph_reading">
                 <span class="unit hide" id="unit_result1" aria-hidden="true">mg%</span>
               </div>
               <button type="button" class="hi-btn" id="hi_result1" data-target="result1" aria-pressed="false" title="เครื่องเป่าขึ้น HI (เกิน 99)">HI</button>
@@ -505,7 +505,7 @@ html[data-theme="dark"] .toast-mini{color:#121519}
           </div>
           <div class="field">
             <label class="lbl" for="time1" data-i18n="f_t1">เวลาตรวจครั้งที่ 1 (24 ชม.)<span class="req">*</span></label>
-            <input type="text" id="time1" inputmode="numeric" maxlength="5" class="mono-in" required placeholder="เช่น 08:15 / 14:30">
+            <input type="text" id="time1" inputmode="numeric" maxlength="5" class="mono-in" required placeholder="เช่น 08:15 / 14:30" data-i18n-ph="ph_time1">
             <div class="err" id="err_time1" data-i18n="e_time">กรุณากรอกเวลาแบบ 24 ชม. (HH:mm)</div>
           </div>
         </div>
@@ -514,7 +514,7 @@ html[data-theme="dark"] .toast-mini{color:#121519}
             <label class="lbl" for="result2" data-i18n="f_r2">ผลครั้งที่ 2 (ยืนยันซ้ำ)<span class="req">*</span></label>
             <div class="reading">
               <div class="reading-in">
-                <input type="text" id="result2" inputmode="numeric" maxlength="2" class="mono-in" required placeholder="เช่น 45">
+                <input type="text" id="result2" inputmode="numeric" maxlength="2" class="mono-in" required placeholder="เช่น 45" data-i18n-ph="ph_reading">
                 <span class="unit hide" id="unit_result2" aria-hidden="true">mg%</span>
               </div>
               <button type="button" class="hi-btn" id="hi_result2" data-target="result2" aria-pressed="false" title="เครื่องเป่าขึ้น HI (เกิน 99)">HI</button>
@@ -523,7 +523,7 @@ html[data-theme="dark"] .toast-mini{color:#121519}
           </div>
           <div class="field">
             <label class="lbl" for="time2" data-i18n="f_t2">เวลาตรวจครั้งที่ 2 (24 ชม.)<span class="req">*</span></label>
-            <input type="text" id="time2" inputmode="numeric" maxlength="5" class="mono-in" required placeholder="เช่น 08:20 / 14:45">
+            <input type="text" id="time2" inputmode="numeric" maxlength="5" class="mono-in" required placeholder="เช่น 08:20 / 14:45" data-i18n-ph="ph_time2">
             <div class="err" id="err_time2" data-i18n="e_time">กรุณากรอกเวลาแบบ 24 ชม. (HH:mm)</div>
           </div>
         </div>
@@ -562,12 +562,12 @@ html[data-theme="dark"] .toast-mini{color:#121519}
       <div class="sec-body">
         <div class="field">
           <label class="lbl" for="reporter" data-i18n="f_reporter">เจ้าหน้าที่ รปภ. ผู้รายงาน<span class="req">*</span></label>
-          <input type="text" id="reporter" maxlength="120" required placeholder="ชื่อ-นามสกุล ผู้กรอก">
+          <input type="text" id="reporter" maxlength="120" required placeholder="ชื่อ-นามสกุล ผู้กรอก" data-i18n-ph="ph_reporter">
           <div class="err" id="err_reporter" data-i18n="e_req">กรุณากรอกข้อมูลนี้</div>
         </div>
         <div class="field">
           <label class="lbl" for="notes" data-i18n="f_notes">หมายเหตุเพิ่มเติม<span class="opt" data-i18n="optional">(ไม่บังคับ)</span></label>
-          <textarea id="notes" maxlength="600" placeholder="รายละเอียดเหตุการณ์ / การดำเนินการเบื้องต้น"></textarea>
+          <textarea id="notes" maxlength="600" placeholder="รายละเอียดเหตุการณ์ / การดำเนินการเบื้องต้น" data-i18n-ph="ph_notes"></textarea>
         </div>
       </div>
     </div>
@@ -686,6 +686,9 @@ const I18N = {
     confirm_clear:"ล้างข้อมูลทั้งฟอร์ม? ข้อมูลที่กรอกไว้จะหายทั้งหมดและกู้คืนไม่ได้",
     draft_restored:"กู้คืนร่างที่ค้างไว้{t} — ใช้ต่อหรือเริ่มเคสใหม่?", draft_keep:"ใช้ต่อ", draft_new:"เริ่มใหม่",
     tap_copy:"แตะเพื่อคัดลอก", copied:"คัดลอกเลขเคสแล้ว ✓",
+    ph_date:"วว/ดด/ปปปป", ph_name:"เช่น สมชาย ใจดี", ph_company:"พิมพ์เพื่อค้นหา หรือเลือกจากรายชื่อ",
+    ph_plate:"เช่น 70-1234 กทม / 1กก 5678", ph_reading:"เช่น 45", ph_time1:"เช่น 08:15 / 14:30", ph_time2:"เช่น 08:20 / 14:45",
+    ph_reporter:"ชื่อ-นามสกุล ผู้กรอก", ph_notes:"รายละเอียดเหตุการณ์ / การดำเนินการเบื้องต้น",
     rk:{site:"ไซต์",date:"วันที่ตรวจ",type:"ประเภท",name:"ชื่อ-นามสกุล",company:"บริษัท/สังกัด",plate:"ทะเบียนรถ",r1:"ผลครั้งที่ 1",r2:"ผลครั้งที่ 2",sev:"สถานะ",reporter:"ผู้รายงาน",notes:"หมายเหตุ",case:"เลขอ้างอิง"},
     tv:{transport:"พนักงานขนส่ง",general:"พนักงานทั่วไป"}
   },
@@ -715,6 +718,9 @@ const I18N = {
     confirm_clear:"Clear the entire form? All entered data will be lost and cannot be recovered.",
     draft_restored:"Restored an unfinished draft{t} — continue or start a new case?", draft_keep:"Continue", draft_new:"Start new",
     tap_copy:"Tap to copy", copied:"Case ID copied ✓",
+    ph_date:"dd/mm/yyyy", ph_name:"e.g. John Smith", ph_company:"Type to search or pick from the list",
+    ph_plate:"e.g. 70-1234 BKK / 1AB 5678", ph_reading:"e.g. 45", ph_time1:"e.g. 08:15 / 14:30", ph_time2:"e.g. 08:20 / 14:45",
+    ph_reporter:"Your full name", ph_notes:"Incident details / initial action taken",
     rk:{site:"Site",date:"Test date",type:"Type",name:"Full name",company:"Company",plate:"Plate",r1:"Reading #1",r2:"Reading #2",sev:"Status",reporter:"Reporter",notes:"Notes",case:"Reference"},
     tv:{transport:"Transport staff",general:"General staff"}
   }
@@ -857,6 +863,11 @@ function applyLang(){
     } else {
       el.textContent = val;
     }
+  });
+  // placeholder ตัวอย่างการกรอก — เปลี่ยนตามภาษาที่เลือก
+  document.querySelectorAll("[data-i18n-ph]").forEach(el => {
+    const val = I18N[lang][el.getAttribute("data-i18n-ph")];
+    if(val != null) el.setAttribute("placeholder", val);
   });
   updateSeverity();
 }
