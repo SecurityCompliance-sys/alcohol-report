@@ -409,9 +409,9 @@ html[data-theme="dark"] .toast{color:#121519}
 <script>
 "use strict";
 /* ============================================================================
-   🔐 ADMIN AUTH — SHA-256 (default password: SCadmin2026! — เปลี่ยนในแท็บ Security)
+   🔐 ADMIN AUTH — SHA-256 (เปลี่ยนรหัสได้ในแท็บ Security → สร้าง hash → วางแทนค่านี้)
    ============================================================================ */
-const PW_HASH = "66e1ca9a001df043e75b24fe8a9ab8cd837f8b851f30f45205c5dacb4f94da7b";
+const PW_HASH = "f72dfaab74c8385b6da821cac28d6d377c0c9affa0a63bf65fa344cabb0e2ca2";
 const MAX_ATTEMPTS = 5, LOCK_MIN = 5, SESSION_MIN = 30;
 
 const store = (()=>{ try{ const k="__t"; localStorage.setItem(k,"1"); localStorage.removeItem(k); return localStorage; }catch(e){ return null; } })();
