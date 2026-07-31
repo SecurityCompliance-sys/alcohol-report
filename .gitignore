@@ -1,0 +1,13 @@
+# wrangler / Cloudflare
+.wrangler/
+
+# secrets — อย่า commit ค่าลับขึ้น repo สาธารณะ
+.dev.vars
+.dev.vars.*
+!.dev.vars.example
+.env
+.env.*
+!.env.example
+
+# node
+node_modules/

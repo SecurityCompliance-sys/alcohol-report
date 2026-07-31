@@ -1,0 +1,16 @@
+# ============================================================================
+# wrangler.toml — deploy config สำหรับ worker.js (secure proxy)
+# ----------------------------------------------------------------------------
+# ตัวฟอร์ม (index.html/admin.html) เสิร์ฟผ่าน GitHub Pages — ไม่เกี่ยวกับ Worker
+# Worker นี้ทำหน้าที่เดียว: คั่นกลางซ่อน FLOW_URL + FLOW_SECRET ของ Power Automate
+#
+# Deploy (รันบนเครื่องคุณ):
+#   npm i -g wrangler && wrangler login
+#   wrangler secret put FLOW_URL       # URL จริงจาก Power Automate trigger
+#   wrangler secret put FLOW_SECRET    # โทเค็นลับที่ Flow ข้อ 3 ตรวจ
+#   wrangler secret put CLIENT_TOKEN   # โทเค็นเบา = ค่าเดียวกับ Shared Token ในฟอร์ม
+#   wrangler deploy
+# ============================================================================
+name = "alcohol-report"
+main = "worker.js"
+compatibility_date = "2026-07-31"
