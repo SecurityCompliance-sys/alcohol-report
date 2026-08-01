@@ -628,11 +628,11 @@ const CONFIG = {
 
   // 1) URL จาก Power Automate trigger "When a HTTP request is received"
   //    (คัดลอกมาหลังบันทึก flow ครั้งแรก)
-  webhookUrl: "https://REPLACE-WITH-YOUR-POWER-AUTOMATE-URL",
+  webhookUrl: "https://alcohol-positive.securitycompliance.workers.dev",
 
   // 2) โทเค็นลับ — ส่งไปใน "body" (ไม่ใช่ header) เพื่อเลี่ยง CORS preflight
   //    ⚠️ นี่คือ "ด่านชะลอ" ไม่ใช่รหัสผ่านจริง (ใครเปิด view-source ก็เห็น) — flow ต้องตรวจค่านี้อีกชั้น
-  sharedToken: "REPLACE-WITH-YOUR-SECRET-TOKEN",
+  sharedToken: "ct_t89wnTW1Cbwb2ugfcNo1OHum",
 
   // 3) Cloudinary — แนะนำสร้าง unsigned preset ใหม่เฉพาะงานนี้ (แยก data ออกจาก llkdc_parcel เพื่อ governance)
   cloudinary: { cloudName: "iivjqibu", uploadPreset: "alcohol_report" },
