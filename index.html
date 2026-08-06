@@ -1062,10 +1062,29 @@ async function compressImage(file){
     const img = await loadImage(file); let {width,height}=img; const m=CONFIG.maxImageDim;
     if(width>m || height>m){ const s=Math.min(m/width,m/height); width=Math.round(width*s); height=Math.round(height*s); }
     const c=document.createElement("canvas"); c.width=width; c.height=height;
-    c.getContext("2d").drawImage(img,0,0,width,height);
+    const ctx=c.getContext("2d");
+    ctx.drawImage(img,0,0,width,height);
+    stampDateTime(ctx,width,height);
     const blob = await new Promise(r => c.toBlob(r,"image/jpeg",CONFIG.imageQuality));
     return blob || file;
   }catch(_){ return file; }
+}
+// ประทับ วัน-เวลา (Date & time) ลงบนรูปหลักฐาน — มุมล่างซ้าย พร้อมแถบพื้นหลังโปร่งแสงกันอ่านไม่ออก
+function stampDateTime(ctx,width,height){
+  const d=new Date();
+  const pad=n=>String(n).padStart(2,"0");
+  const text=`${pad(d.getDate())}/${pad(d.getMonth()+1)}/${d.getFullYear()} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+  const fs=Math.max(14,Math.round(width*0.030));   // ขนาดฟอนต์ยืดตามความกว้างรูป
+  const padX=Math.round(fs*0.6), padY=Math.round(fs*0.4);
+  ctx.font=`600 ${fs}px system-ui,-apple-system,"Segoe UI",Arial,sans-serif`;
+  ctx.textBaseline="alphabetic";
+  const tw=ctx.measureText(text).width;
+  const barH=fs+padY*2;
+  const x=padX, y=height-barH;                       // มุมล่างซ้าย
+  ctx.fillStyle="rgba(0,0,0,0.55)";
+  ctx.fillRect(0,y,tw+padX*2,barH);
+  ctx.fillStyle="#fff";
+  ctx.fillText(text,x,height-padY-Math.round(fs*0.18));
 }
 function uploadToCloudinary(blob){
   return new Promise((resolve,reject)=>{
