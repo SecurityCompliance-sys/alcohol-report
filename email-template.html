@@ -23,7 +23,7 @@
 
    <!-- case + site -->
    <tr><td style="padding:16px 22px 4px 22px;color:#212121;font-size:14px;line-height:1.6;">
-     เรียน ผู้จัดการไซต์ <b>@{body('Parse_JSON')?['site']}</b><br>
+     เรียน @{if(equals(body('Parse_JSON')?['personType'],'transport'),'ผู้จัดการจัดส่ง','ผู้จัดการไซต์')} <b>@{body('Parse_JSON')?['site']}</b><br>
      ระบบได้รับรายงานผลตรวจแอลกอฮอล์เป็นบวก รายละเอียดดังนี้
      <div style="margin-top:10px;font-family:Consolas,monospace;font-size:13px;color:#555;">
        เลขอ้างอิง: <b style="color:#C1121F;">@{body('Parse_JSON')?['caseId']}</b>
