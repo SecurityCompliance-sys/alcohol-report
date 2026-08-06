@@ -1194,6 +1194,11 @@ function validate(){
    ============================================================================ */
 function collect(){
   const isTransport = $("pt_transport").checked;
+  // สังกัดต่อท้ายอัตโนมัติ: พนักงานขนส่ง → TRO (ผู้จัดการจัดส่ง), พนักงานทั่วไป → WH (ผู้จัดการไซต์)
+  // เว้นที่ให้ suffix " / TRO" (6 อักษร) → cap ฐานที่ 114 กัน worker.clean() ตัดหาง (FIELD_MAX.company=120)
+  const unit = isTransport ? "TRO" : "WH";
+  const companyBase = sanitize($("company").value,114);
+  const company = companyBase ? `${companyBase} / ${unit}` : companyBase;
   return {
     token: CONFIG.sharedToken,
     caseId,
@@ -1201,7 +1206,7 @@ function collect(){
     testDate: displayToISO($("testDate").value),
     personType: isTransport ? "transport" : "general",
     fullName: sanitize($("fullName").value,120),
-    company: sanitize($("company").value,120),
+    company,
     licensePlate: isTransport ? sanitize($("plate").value,30) : "",
     result1: sanitize($("result1").value,12),
     time1: $("time1").value,
