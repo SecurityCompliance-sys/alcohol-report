@@ -583,7 +583,7 @@ html[data-theme="dark"] .toast-mini{color:#121519}
   <div class="done" id="done">
     <div class="seal">✓</div>
     <h2 data-i18n="done_t">ส่งรายงานเรียบร้อย</h2>
-    <p data-i18n="done_p">ระบบได้แจ้งเตือนไปยังผู้จัดการไซต์แล้ว</p>
+    <p id="donePara" data-i18n="done_p">ระบบได้แจ้งเตือนไปยังผู้จัดการไซต์แล้ว</p>
     <div class="idcard" id="caseIdCard" role="button" tabindex="0" title="คัดลอกเลขเคส"><span data-i18n="caseid_label2">เลขอ้างอิงเคส</span><b id="doneCaseId">—</b><span class="copyhint" data-i18n="tap_copy">แตะเพื่อคัดลอก</span></div>
     <div><button class="btn primary" id="againBtn" style="max-width:280px;margin:0 auto" data-i18n="again">+ รายงานเคสใหม่</button></div>
   </div>
@@ -674,7 +674,7 @@ const I18N = {
     f_reporter:"เจ้าหน้าที่ รปภ. ผู้รายงาน", f_notes:"หมายเหตุเพิ่มเติม", optional:"(ไม่บังคับ)",
     clear:"ล้างฟอร์ม", review:"ตรวจสอบข้อมูล →",
     rev_t:"ตรวจสอบก่อนส่ง", hold_t:"กดค้างเพื่อยืนยันส่ง", hold_s:"กดค้างไว้ประมาณ 1 วินาที",
-    done_t:"ส่งรายงานเรียบร้อย", done_p:"ระบบได้แจ้งเตือนไปยังผู้จัดการไซต์แล้ว", again:"+ รายงานเคสใหม่",
+    done_t:"ส่งรายงานเรียบร้อย", done_p:"ระบบได้แจ้งเตือนไปยังผู้จัดการไซต์แล้ว", done_p_tro:"ระบบได้แจ้งเตือนไปยังผู้จัดการจัดส่งแล้ว", again:"+ รายงานเคสใหม่",
     confidential:"■ เอกสารลับ · สำหรับใช้ภายในเท่านั้น",
     e_req:"กรุณากรอกข้อมูลนี้", e_num:"กรอกค่าที่วัดได้ 0–99 หรือกดปุ่ม HI", e_plate:"กรุณากรอกทะเบียนรถให้ถูกต้อง", e_photo:"กรุณาแนบรูปหลักฐาน", e_time:"เวลาแบบ 24 ชม. 00:00–23:59 (เที่ยงคืน = 00:00)", e_date:"กรุณากรอกวันที่ให้ถูกต้อง (วว/ดด/ปปปป)",
     sev_pos:"ผลเป็นบวก — ต้องดำเนินการ", sev_elev:"สูงกว่าเกณฑ์ที่กำหนด",
@@ -706,7 +706,7 @@ const I18N = {
     f_reporter:"Reporting security officer", f_notes:"Additional notes", optional:"(optional)",
     clear:"Clear form", review:"Review data →",
     rev_t:"Review before sending", hold_t:"Hold to confirm & send", hold_s:"Press and hold ~1 second",
-    done_t:"Report submitted", done_p:"The site manager has been notified.", again:"+ New report",
+    done_t:"Report submitted", done_p:"The site manager has been notified.", done_p_tro:"The delivery manager has been notified.", again:"+ New report",
     confidential:"■ Confidential · Internal use only",
     e_req:"This field is required", e_num:"Enter a reading 0–99 or tap HI", e_plate:"Please enter a valid plate", e_photo:"Please attach evidence", e_time:"24-hour time 00:00–23:59 (midnight = 00:00)", e_date:"Enter a valid date (dd/mm/yyyy)",
     sev_pos:"Positive result — action required", sev_elev:"Above configured threshold",
@@ -875,6 +875,7 @@ function applyLang(){
     if(val != null) el.setAttribute("placeholder", val);
   });
   updateSeverity();
+  doneMsg();   // ข้อความหน้าสำเร็จให้ตรงประเภทเสมอ แม้สลับภาษา
 }
 
 /* ============================================================================
@@ -1298,7 +1299,7 @@ async function submit(){
   showLoading(t("load_send"));
   try{
     await sendToFlow(payload);
-    hideLoading(); toggleOverlay(false); success(payload.caseId);
+    hideLoading(); toggleOverlay(false); success(payload.caseId, payload.personType);
     clearDraft(); removePending(payload.caseId);
   }catch(err){
     hideLoading();
@@ -1308,8 +1309,13 @@ async function submit(){
     refreshPendingBanner(); toggleOverlay(false);
   }
 }
-function success(id){
+// ประเภทของเคสที่เพิ่งส่งสำเร็จ — ใช้เลือกข้อความหน้าสำเร็จ (ไซต์ vs จัดส่ง)
+let doneType = "general";
+function doneMsg(){ $("donePara").textContent = t(doneType==="transport" ? "done_p_tro" : "done_p"); }
+function success(id, personType){
   submitting=false;
+  doneType = personType==="transport" ? "transport" : "general";
+  doneMsg();
   $("form").style.display="none";
   $("draftBanner").classList.remove("show");
   document.querySelector(".actions").style.display="none";
@@ -1383,12 +1389,12 @@ function refreshPendingBanner(){
 async function resendPending(){
   const a=getPending(); if(!a.length) return;
   showLoading(t("load_send"));
-  let sentCurrent=false;
-  for(const p of [...a]){ try{ await sendToFlow(p); removePending(p.caseId); if(p.caseId===caseId) sentCurrent=true; }catch(_){ /* keep */ } }
+  let sentCurrent=false, sentType="general";
+  for(const p of [...a]){ try{ await sendToFlow(p); removePending(p.caseId); if(p.caseId===caseId){ sentCurrent=true; sentType=p.personType; } }catch(_){ /* keep */ } }
   hideLoading(); refreshPendingBanner();
   // only jump to the success screen if the case being displayed right now is the one that just sent —
   // otherwise this is a background flush of older queued cases and must not clobber an in-progress draft
-  if(sentCurrent){ success(caseId); clearDraft(); }
+  if(sentCurrent){ success(caseId, sentType); clearDraft(); }
 }
 
 /* ============================================================================
