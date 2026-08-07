@@ -776,6 +776,11 @@ function displayToISO(s){
   return `${m[3]}-${m[2]}-${m[1]}`;
 }
 function todayDisplay(){ return isoToDisplay(todayLocal()); }
+// เวลาที่ส่งฟอร์ม (เวลาเครื่องผู้ใช้ = เวลาไทย) แบบอ่านง่าย dd/mm/yyyy HH:mm น.
+function nowDisplay(){
+  const d = new Date(), p = n => String(n).padStart(2,"0");
+  return `${p(d.getDate())}/${p(d.getMonth()+1)}/${d.getFullYear()} ${p(d.getHours())}:${p(d.getMinutes())} น.`;
+}
 // พิมพ์เลขแล้วเติม "/" อัตโนมัติ (08072026 → 08/07/2026) + sync ไปปฏิทินเนทีฟ
 function formatDate(e){
   let v = e.target.value.replace(/\D/g,"").slice(0,8);
@@ -1216,7 +1221,7 @@ function collect(){
     photoUrl,
     reporter: sanitize($("reporter").value,120),
     notes: sanitize($("notes").value,600),
-    submittedAt: new Date().toISOString(),
+    submittedAt: nowDisplay(),
     userAgent: navigator.userAgent.slice(0,200),
     appVersion: CONFIG.appVersion
   };
