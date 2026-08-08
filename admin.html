@@ -725,14 +725,22 @@ function onSignedIn(session){
 async function supaLoad(silent){
   const c=supa(); if(!c) return;
   if(!silent) toast("กำลังโหลดข้อมูล…");
-  const { data, error } = await c.from(SUPA_TABLE).select("*").order("inserted_at",{ ascending:false }).limit(2000);
-  if(error){ toast("โหลดไม่สำเร็จ: "+error.message,true); return; }
-  reportRows = Array.isArray(data) ? data : [];
-  const sf=$("fSite"); const cur=sf.value;
-  sf.innerHTML='<option value="">ทั้งหมด</option>'+[...new Set(reportRows.map(r=>r.site).filter(Boolean))].sort().map(s=>`<option>${esc(s)}</option>`).join("");
-  sf.value=cur;
-  applyLive();
-  if(!silent) toast(`โหลด ${reportRows.length} รายการ ✓`);
+  // ดึง session token แล้วยิง REST แนบ Authorization เอง — ชัวร์กว่าให้ไลบรารีสลับ header (โดยเฉพาะกับ publishable key)
+  let token="";
+  try{ const { data } = await c.auth.getSession(); token = data && data.session ? data.session.access_token : ""; }catch(_){}
+  if(!token){ toast("เซสชันหมดอายุ กรุณาล็อกอินใหม่",true); supaSignOut(); return; }
+  try{
+    const res = await fetch(`${SUPA_URL}/rest/v1/${SUPA_TABLE}?select=*&order=inserted_at.desc&limit=2000`,
+      { headers:{ apikey:SUPA_KEY, Authorization:"Bearer "+token } });
+    if(!res.ok) throw new Error("HTTP "+res.status+" "+(await res.text()).slice(0,140));
+    const rows = await res.json();
+    reportRows = Array.isArray(rows) ? rows : [];
+    const sf=$("fSite"); const cur=sf.value;
+    sf.innerHTML='<option value="">ทั้งหมด</option>'+[...new Set(reportRows.map(r=>r.site).filter(Boolean))].sort().map(s=>`<option>${esc(s)}</option>`).join("");
+    sf.value=cur;
+    applyLive();
+    if(!silent) toast(`โหลด ${reportRows.length} รายการ ✓`);
+  }catch(e){ toast("โหลดไม่สำเร็จ: "+e.message,true); }
 }
 function subscribeRealtime(){
   const c=supa(); if(!c || supaChannel) return;
