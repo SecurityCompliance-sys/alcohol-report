@@ -61,7 +61,8 @@ export default {
 
     // 2) size guard
     const raw = await request.text();
-    if (raw.length > MAX_BYTES) return json({ error: "payload_too_large" }, 413, cors);
+    // นับเป็น "ไบต์" จริง (UTF-8) — raw.length เป็นหน่วย UTF-16 ทำให้ข้อความไทยหลุดเพดานได้ ~3 เท่า
+    if (new TextEncoder().encode(raw).length > MAX_BYTES) return json({ error: "payload_too_large" }, 413, cors);
 
     // 3) parse
     let payload;
