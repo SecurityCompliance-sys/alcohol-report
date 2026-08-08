@@ -509,7 +509,12 @@ html[data-theme="dark"] .toast-mini{color:#121519}
             <div class="err" id="err_time1" data-i18n="e_time">กรุณากรอกเวลาแบบ 24 ชม. (HH:mm)</div>
           </div>
         </div>
-        <div class="grid-2">
+        <label id="singleTestLabel" style="display:flex;align-items:center;gap:10px;margin:2px 0 12px;padding:11px 13px;border:1.5px dashed var(--line-strong);border-radius:10px;cursor:pointer;font-size:14px;line-height:1.4">
+          <input type="checkbox" id="singleTest" style="width:18px;height:18px;flex:none;accent-color:var(--hazard);cursor:pointer">
+          <span data-i18n="single_test">ตรวจครั้งเดียว · ไม่มีการยืนยันซ้ำ (ผู้ถูกตรวจไม่รอตรวจครั้งที่ 2)</span>
+        </label>
+        <div class="hint" id="singleNote" style="display:none;margin:-6px 0 10px;color:var(--caution)" data-i18n="single_note">⚠️ จะบันทึกว่า “ไม่ได้ตรวจครั้งที่ 2”</div>
+        <div class="grid-2" id="secondReadingGroup">
           <div class="field">
             <label class="lbl" for="result2" data-i18n="f_r2">ผลครั้งที่ 2 (ยืนยันซ้ำ)<span class="req">*</span></label>
             <div class="reading">
@@ -670,6 +675,7 @@ const I18N = {
     f_name:"ชื่อ-นามสกุล", f_company:"บริษัท / สังกัด", h_company:"แตะเพื่อดูรายชื่อ · ถ้าไม่พบ พิมพ์ชื่อเองได้เลย", combo_empty:"ไม่พบในรายชื่อ — ใช้ชื่อที่พิมพ์ได้เลย", f_plate:"ทะเบียนรถ", h_plate:"รองรับทะเบียนไทย/อังกฤษ (ตัวอักษร ตัวเลข ขีด และจังหวัด)",
     f_r1:"ผลครั้งที่ 1 (ค่าที่วัดได้)", h_unit:"หน่วยตามเครื่องวัด (เช่น mg%)", h_reading:"เลขจำนวนเต็ม 0–99 (mg%) · ถ้าเครื่องขึ้น HI ให้กดปุ่ม HI", f_t1:"เวลาตรวจครั้งที่ 1 (24 ชม.)",
     f_r2:"ผลครั้งที่ 2 (ยืนยันซ้ำ)", f_t2:"เวลาตรวจครั้งที่ 2 (24 ชม.)",
+    single_test:"ตรวจครั้งเดียว · ไม่มีการยืนยันซ้ำ (ผู้ถูกตรวจไม่รอตรวจครั้งที่ 2)", single_note:"⚠️ จะบันทึกว่า “ไม่ได้ตรวจครั้งที่ 2”", single_r2:"ไม่ได้ตรวจครั้งที่ 2 (ตรวจครั้งเดียว)",
     ph_t:"แตะเพื่อถ่ายรูป หรือเลือกรูป", ph_s:"ผลตรวจ / เครื่องวัด · JPG PNG · บีบอัดอัตโนมัติ", remove:"ลบ",
     f_reporter:"เจ้าหน้าที่ รปภ. ผู้รายงาน", f_notes:"หมายเหตุเพิ่มเติม", optional:"(ไม่บังคับ)",
     clear:"ล้างฟอร์ม", review:"ตรวจสอบข้อมูล →",
@@ -702,6 +708,7 @@ const I18N = {
     f_name:"Full name", f_company:"Company / Affiliation", h_company:"Tap to browse the list · type a new name if not found", combo_empty:"Not in the list — your typed name will be used", f_plate:"License plate", h_plate:"Thai/English plates supported (letters, digits, dash, province)",
     f_r1:"Reading #1 (measured value)", h_unit:"Unit per device (e.g. mg%)", h_reading:"Whole number 0–99 (mg%) · tap HI if the device shows HI", f_t1:"Time of reading #1 (24h)",
     f_r2:"Reading #2 (confirmation)", f_t2:"Time of reading #2 (24h)",
+    single_test:"Single test · no confirmation reading (subject did not wait for reading #2)", single_note:"⚠️ Will be recorded as “no second reading”", single_r2:"No second reading (single test)",
     ph_t:"Tap to take a photo or choose", ph_s:"Result / device · JPG PNG · auto-compressed", remove:"Remove",
     f_reporter:"Reporting security officer", f_notes:"Additional notes", optional:"(optional)",
     clear:"Clear form", review:"Review data →",
@@ -811,6 +818,7 @@ function init(){
   $("themeBtn").onclick = () => { theme = theme==="light"?"dark":"light"; store && store.setItem("alc_theme",theme); applyTheme(); };
   document.querySelectorAll('input[name="ptype"]').forEach(r => r.onchange = onTypeChange);
   ["result1","result2"].forEach(id => $(id).addEventListener("input", formatReading));
+  $("singleTest").addEventListener("change", onSingleTestToggle);
   document.querySelectorAll(".hi-btn").forEach(b => b.onclick = () => toggleHI(b));
   // combobox บริษัท/สังกัด — โหลดรายชื่อล่าสุดจาก companies.json + ค่าที่ admin บันทึกในเครื่องนี้
   loadCompanies();
@@ -921,6 +929,18 @@ function updateSeverity(){
 function severityValue(){
   const ev = isElevated();
   return ev ? "elevated" : "positive";
+}
+// สวิตช์ "ตรวจครั้งเดียว" — ซ่อน/ปิดช่องผลครั้งที่ 2 และไม่บังคับกรอก
+function onSingleTestToggle(){
+  const on = $("singleTest").checked;
+  $("secondReadingGroup").style.display = on ? "none" : "";   // .grid-2 มี display:grid — ใช้ inline ให้ซ่อนจริง
+  $("singleNote").style.display = on ? "" : "none";
+  if(on){
+    $("result2").value=""; $("time2").value="";
+    const hb=document.querySelector('.hi-btn[data-target="result2"]'); if(hb) hb.setAttribute("aria-pressed","false");
+    syncReading("result2"); clearErr("result2"); clearErr("time2");
+  }
+  updateSeverity(); saveDraftDebounced();
 }
 // ปรับสถานะหน้าตาช่องผลตรวจให้ตรงกับค่าปัจจุบัน (unit mg%, ปุ่ม HI, disabled)
 function syncReading(id){
@@ -1165,7 +1185,8 @@ function clearErr(id){ const el=$(id); if(el) el.classList.remove("invalid"); co
 
 function validate(){
   let ok=true; const bad=[];
-  const req = ["site","testDate","fullName","company","result1","time1","result2","time2","reporter"];
+  const single = $("singleTest").checked;
+  const req = ["site","testDate","fullName","company","result1","time1", ...(single?[]:["result2","time2"]), "reporter"];
   req.forEach(id => { clearErr(id); if(!$(id).value.trim()){ showErr(id); bad.push(id); ok=false; } });
 
   // person type
@@ -1216,8 +1237,8 @@ function collect(){
     licensePlate: isTransport ? sanitize($("plate").value,30) : "",
     result1: sanitize($("result1").value,12),
     time1: $("time1").value,
-    result2: sanitize($("result2").value,12),
-    time2: $("time2").value,
+    result2: $("singleTest").checked ? "" : sanitize($("result2").value,12),
+    time2: $("singleTest").checked ? "" : $("time2").value,
     severity: severityValue(),
     photoUrl,
     reporter: sanitize($("reporter").value,120),
@@ -1254,7 +1275,8 @@ function buildReview(d){
   html += row(rk.company, d.company);
   if(d.personType==="transport") html += row(rk.plate, d.licensePlate, true);
   html += row(rk.r1, `${fmtReading(d.result1)}  (${d.time1})`, true);
-  html += row(rk.r2, `${fmtReading(d.result2)}  (${d.time2})`, true);
+  if(d.result2) html += row(rk.r2, `${fmtReading(d.result2)}  (${d.time2})`, true);
+  else html += row(rk.r2, t("single_r2"));
   html += row(rk.sev, sev);
   html += row(rk.reporter, d.reporter);
   html += row(rk.notes, d.notes);
@@ -1343,6 +1365,7 @@ function saveDraft(){
     ptype:($("pt_transport").checked?"transport":($("pt_general").checked?"general":"")),
     fullName:$("fullName").value, company:$("company").value, plate:$("plate").value,
     result1:$("result1").value, time1:$("time1").value, result2:$("result2").value, time2:$("time2").value,
+    singleTest:$("singleTest").checked,
     reporter:$("reporter").value, notes:$("notes").value, caseId, savedAt:Date.now()
   };
   try{ store.setItem(DRAFT_KEY, JSON.stringify(d)); }catch(_){}
@@ -1357,6 +1380,7 @@ function restoreDraft(){
   $("testDatePicker").value = displayToISO($("testDate").value) || todayLocal();
   if(d.ptype==="transport"){ $("pt_transport").checked=true; onTypeChange(); }
   else if(d.ptype==="general"){ $("pt_general").checked=true; onTypeChange(); }
+  if(d.singleTest){ $("singleTest").checked=true; onSingleTestToggle(); }
   if(d.caseId){ caseId=d.caseId; $("caseIdDisplay").textContent=caseId; }
   syncReading("result1"); syncReading("result2");
   updateSeverity();
@@ -1416,6 +1440,7 @@ function clearForm(){
   $("plateField").classList.remove("show");
   $("draftBanner").classList.remove("show");
   ["result1","result2"].forEach(id=>{ $(id).disabled=false; $(id).value=""; syncReading(id); });
+  $("singleTest").checked=false; onSingleTestToggle();   // คืนช่องผลครั้งที่ 2 ให้แสดง+บังคับ
   $("testDate").value=todayDisplay();
   $("testDatePicker").value=todayLocal();
   clearDraft(); newCaseId();
