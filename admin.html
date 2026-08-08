@@ -556,7 +556,9 @@ function enterApp(){
   ["click","keydown","mousemove","touchstart"].forEach(ev=>document.addEventListener(ev,resetIdle,{passive:true}));
 }
 function resetIdle(){ if(!sessionActive) return; clearTimeout(idleTimer); idleTimer=setTimeout(logout, SESSION_MIN*60000); const m=Math.round(SESSION_MIN); $("sessionPill").textContent="🟢 session "+m+"m"; }
-function logout(){ sessionActive=false; supaKey=""; clearTimeout(idleTimer); $("app").classList.remove("show"); $("loginScreen").style.display="flex"; $("pw").value=""; $("loginMsg").textContent=""; }
+function logout(){ sessionActive=false; supaKey=""; clearTimeout(idleTimer);
+  try{ if(typeof supaSignOut==="function") supaSignOut(); }catch(_){}   // เพิกถอน session + ปิด realtime กันข้อมูล PDPA ค้างหลังจอล็อก
+  $("app").classList.remove("show"); $("loginScreen").style.display="flex"; $("pw").value=""; $("loginMsg").textContent=""; }
 
 /* ============================================================================
    BOOT DATA + THEME + TABS
@@ -765,9 +767,11 @@ function subscribeRealtime(){
 function applyLive(){ renderReports(); renderKpis(); renderAnalyst(); }
 
 /* ---- KPI ---- */
+// วันที่ท้องถิ่น (เวลาไทย) — อย่าใช้ toISOString() เพราะให้ UTC ทำให้ช่วงเที่ยงคืน–07:00 กลายเป็นเมื่อวาน
+function localToday(){ const d=new Date(),p=n=>String(n).padStart(2,"0"); return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())}`; }
 function renderKpis(){
   const rows=reportRows;
-  const today=new Date().toISOString().slice(0,10);
+  const today=localToday();
   const wh=rows.filter(r=>r.personType==="general").length;
   const tro=rows.filter(r=>r.personType==="transport").length;
   const elev=rows.filter(r=>r.severity==="elevated").length;
@@ -851,7 +855,7 @@ function drawDonutSev(rows){ const pos=rows.filter(r=>r.severity!=="elevated").l
 function drawHist(rows){
   const svg=cClear("#cHist"); if(!svg) return;
   const buckets=[["0–19",0],["20–29",0],["30–39",0],["40–49",0],["50+",0],["HI",0]];
-  rows.forEach(r=>{ const n=num(r.result1)!=null?num(r.result1):num(r.result2); if(n==="HI") buckets[5][1]++; else if(typeof n==="number"){ if(n<20)buckets[0][1]++; else if(n<30)buckets[1][1]++; else if(n<40)buckets[2][1]++; else if(n<50)buckets[3][1]++; else buckets[4][1]++; } });
+  rows.forEach(r=>{ const a=num(r.result1); const n=(a!=null)?a:num(r.result2); if(n==="HI") buckets[5][1]++; else if(typeof n==="number"){ if(n<20)buckets[0][1]++; else if(n<30)buckets[1][1]++; else if(n<40)buckets[2][1]++; else if(n<50)buckets[3][1]++; else buckets[4][1]++; } });
   vbars("#cHist",buckets,"--data");
 }
 function drawTopCo(rows){
@@ -906,7 +910,7 @@ function exportReportsCsv(){
   const rows=filteredRows(); if(!rows.length){ toast("ไม่มีข้อมูลให้ส่งออก",true); return; }
   const head=REPORT_COLS.map(c=>c[0]);
   const csv=head.join(",")+"\n"+rows.map(r=>head.map(k=>csvCell(r[k])).join(",")).join("\n");
-  download(`alcohol_reports_${new Date().toISOString().slice(0,10)}.csv`, "\uFEFF"+csv, "text/csv;charset=utf-8");
+  download(`alcohol_reports_${localToday()}.csv`, "\uFEFF"+csv, "text/csv;charset=utf-8");
 }
 
 /* ============================================================================

@@ -1410,11 +1410,16 @@ function refreshPendingBanner(){
   $("pendingText").textContent = a.length===1 ? t("pending_one") : t("pending_many").replace("{n}",a.length);
   b.classList.add("show");
 }
+let resending=false;   // กันยิงซ้ำเมื่อ event 'online' + กดปุ่ม 'ส่งซ้ำ' ชนกัน (ไม่งั้นอีเมลซ้ำ)
 async function resendPending(){
+  if(resending) return;
   const a=getPending(); if(!a.length) return;
+  resending=true;
   showLoading(t("load_send"));
   let sentCurrent=false, sentType="general";
-  for(const p of [...a]){ try{ await sendToFlow(p); removePending(p.caseId); if(p.caseId===caseId){ sentCurrent=true; sentType=p.personType; } }catch(_){ /* keep */ } }
+  try{
+    for(const p of [...a]){ try{ await sendToFlow(p); removePending(p.caseId); if(p.caseId===caseId){ sentCurrent=true; sentType=p.personType; } }catch(_){ /* keep */ } }
+  } finally { resending=false; }
   hideLoading(); refreshPendingBanner();
   // only jump to the success screen if the case being displayed right now is the one that just sent —
   // otherwise this is a background flush of older queued cases and must not clobber an in-progress draft
