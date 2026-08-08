@@ -321,7 +321,7 @@ html[data-theme="dark"] .toast{color:#121519}
       </div>
     </div>
     <div class="info-box">
-      <b>วิธีนำเข้า SharePoint:</b> คอลัมน์ list = <span class="code" style="display:inline;padding:1px 5px">Title · ManagerEmail · CCEmail</span> → เปิด list ในมุมมอง Grid/Quick edit แล้ววางข้อมูลจาก CSV หรือใช้ "Import from Excel"
+      <b>วิธีนำเข้า SharePoint:</b> คอลัมน์ list = <span class="code" style="display:inline;padding:1px 5px">Title · SiteManagerEmail · TROManagerEmail · CCEmail</span> → เปิด list ในมุมมอง Grid/Quick edit แล้ววางข้อมูลจาก CSV หรือใช้ "Import from Excel"
     </div>
   </section>
 
@@ -566,6 +566,13 @@ function bootData(){
   routes = load("alc_admin_routes", DEFAULT_CFG.sites.map(s=>({site:s,siteMgr:"",troMgr:"",cc:""})));
   // migrate สคีมาเก่า {manager} → {siteMgr, troMgr}
   routes = routes.map(r=>({ site:r.site||"", siteMgr:r.siteMgr!=null?r.siteMgr:(r.manager||""), troMgr:r.troMgr||"", cc:r.cc||"" }));
+  // one-time refresh: บังคับรายชื่อไซต์ให้ตรง 12 ไซต์ล่าสุด แม้เครื่องเคยบันทึกลิสต์เก่าไว้
+  if(load("alc_admin_sitesver",0) < 2){
+    cfg.sites = DEFAULT_CFG.sites.slice();
+    // ถ้ายังไม่ได้กรอกอีเมลจริงเลย → รีเซ็ตเป็น 12 แถวสะอาด (ไม่งั้นคงแถวเดิมไว้ ไม่ลบข้อมูล)
+    if(routes.every(r=>!r.siteMgr && !r.troMgr && !r.cc)) routes = DEFAULT_CFG.sites.map(s=>({site:s,siteMgr:"",troMgr:"",cc:""}));
+    save("alc_admin_cfg",cfg); save("alc_admin_routes",routes); save("alc_admin_sitesver",2);
+  }
   reportCfg = load("alc_admin_reportcfg",{sp:"",pbi:"",supaUrl:"",supaTable:"alcohol_reports"});
   fillConfig(); renderSites(); renderRoutes(); fillReportCfg(); renderHealth();
 }
