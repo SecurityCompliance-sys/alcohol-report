@@ -341,28 +341,60 @@ html[data-theme="dark"] .toast{color:#121519}
       </div>
     </div>
 
-    <details id="supaDetails">
-      <summary>🧪 Live Viewer ผ่าน Supabase <span style="font-weight:400;color:var(--faint)">(ขั้นสูง)</span> <span class="arw">›</span></summary>
+    <details id="supaDetails" open>
+      <summary>📊 Live Viewer &amp; วิเคราะห์ (Supabase) <span class="arw">›</span></summary>
       <div class="details-body">
-        <div class="warn"><span class="wic">⚠️</span><div>ข้อมูลนี้เป็นข้อมูลส่วนบุคคล/อ่อนไหว (PDPA) <b>อย่าใช้ anon key ที่เปิดอ่านตารางนี้บนหน้า public</b> — ตั้ง RLS ให้ปิดการอ่านสำหรับ anon แล้วใช้ Supabase Auth หรือ service role ในที่ที่เชื่อถือได้เท่านั้น · key ที่กรอกด้านล่างเก็บในหน่วยความจำชั่วคราว ไม่บันทึกลงเครื่อง</div></div>
-        <div class="grid2">
-          <div class="fld"><label class="lbl" for="sb_url">Supabase URL</label><input class="inp mono" id="sb_url" placeholder="https://xxxx.supabase.co"></div>
-          <div class="fld"><label class="lbl" for="sb_table">Table</label><input class="inp mono" id="sb_table" placeholder="alcohol_reports"></div>
+        <!-- ล็อกอิน Supabase Auth -->
+        <div id="supaAuth">
+          <div class="warn"><span class="wic">🔐</span><div>ข้อมูลอ่อนไหว (PDPA) — อ่านได้เฉพาะผู้ที่ล็อกอินด้วย Supabase Auth เท่านั้น (RLS ปิดกั้น anon แล้ว) เซสชันจำไว้ในเครื่องนี้ ครั้งต่อไปไม่ต้องล็อกอินซ้ำ</div></div>
+          <div class="grid2">
+            <div class="fld"><label class="lbl" for="sbEmail">อีเมล</label><input class="inp mono" id="sbEmail" autocomplete="username" placeholder="you@bevchain.co.th"></div>
+            <div class="fld"><label class="lbl" for="sbPass">รหัสผ่าน</label><input class="inp mono" id="sbPass" type="password" autocomplete="current-password" placeholder="••••••••"></div>
+          </div>
+          <button class="btn primary" id="sbSignIn">🔓 เข้าสู่ระบบ Supabase</button>
+          <span class="hlp" id="sbAuthMsg" style="margin-left:10px"></span>
         </div>
-        <div class="fld"><label class="lbl" for="sb_key">API Key <span class="tag">memory only</span></label><input class="inp mono" id="sb_key" type="password" placeholder="ใส่ตอนใช้งาน · ไม่ถูกบันทึก"></div>
-        <button class="btn primary" id="loadReports">🔄 โหลดรายงาน</button>
 
-        <div id="reportsArea" style="display:none;margin-top:16px">
-          <div class="filters">
+        <!-- ข้อมูล (หลังล็อกอิน) -->
+        <div id="supaData" style="display:none">
+          <div class="badges" style="margin-bottom:12px;align-items:center">
+            <span class="session-pill" id="sbWho"></span>
+            <button class="btn sm ghost" id="sbRefresh">↻ รีเฟรช</button>
+            <span class="live-dot" id="sbLive" title="อัปเดตเรียลไทม์">● LIVE</span>
+            <button class="btn sm" id="sbSignOut">⎋ ออกจาก Supabase</button>
+          </div>
+
+          <div id="kpiTiles" class="kpi-row"></div>
+
+          <div class="subseg" id="liveSeg">
+            <button class="active" data-view="table">📋 ตาราง</button>
+            <button data-view="analyst">📈 วิเคราะห์</button>
+          </div>
+
+          <div class="filters" id="liveFilters">
             <div class="fld"><label class="lbl">ไซต์</label><select class="inp" id="fSite"><option value="">ทั้งหมด</option></select></div>
             <div class="fld"><label class="lbl">ตั้งแต่</label><input class="inp mono" id="fFrom" type="date"></div>
             <div class="fld"><label class="lbl">ถึง</label><input class="inp mono" id="fTo" type="date"></div>
-            <div class="fld"><label class="lbl">สถานะ</label><select class="inp" id="fSev"><option value="">ทั้งหมด</option><option value="positive">Positive</option><option value="elevated">Elevated</option></select></div>
+            <div class="fld"><label class="lbl">สถานะ</label><select class="inp" id="fSev"><option value="">ทั้งหมด</option><option value="positive">ผลบวก</option><option value="elevated">เกินเกณฑ์</option></select></div>
             <div class="fld"><label class="lbl">ค้นหา</label><input class="inp" id="fSearch" placeholder="ชื่อ/บริษัท/ทะเบียน"></div>
             <button class="btn sm" id="exportReportsCsv">⬇ CSV</button>
           </div>
-          <div class="tbl-wrap"><table id="reportsTable"><thead id="reportsHead"></thead><tbody id="reportsBody"></tbody></table></div>
-          <div class="hlp" id="reportsCount" style="margin-top:8px"></div>
+
+          <div id="viewTable">
+            <div class="tbl-wrap"><table id="reportsTable"><thead id="reportsHead"></thead><tbody id="reportsBody"></tbody></table></div>
+            <div class="hlp" id="reportsCount" style="margin-top:8px"></div>
+          </div>
+
+          <div id="viewAnalyst" style="display:none">
+            <div class="chart-grid">
+              <div class="chart-card wide"><h3>แนวโน้มรายเดือน</h3><svg id="cTrend" viewBox="0 0 720 220" role="img"></svg></div>
+              <div class="chart-card"><h3>เคสตามไซต์ · WH/TRO</h3><svg id="cBySite" viewBox="0 0 360 260" role="img"></svg><div class="lg"><span><i style="background:var(--c-wh)"></i>WH · ไซต์</span><span><i style="background:var(--c-tro)"></i>TRO · จัดส่ง</span></div></div>
+              <div class="chart-card"><h3>สัดส่วน WH / TRO</h3><div class="donut-wrap"><svg id="cDonutType" viewBox="0 0 160 160" width="150" height="150" role="img"></svg><div id="lgType" class="lg col"></div></div></div>
+              <div class="chart-card"><h3>ความรุนแรง</h3><div class="donut-wrap"><svg id="cDonutSev" viewBox="0 0 160 160" width="150" height="150" role="img"></svg><div id="lgSev" class="lg col"></div></div></div>
+              <div class="chart-card"><h3>การกระจายค่าที่วัดได้</h3><svg id="cHist" viewBox="0 0 360 220" role="img"></svg></div>
+              <div class="chart-card"><h3>บริษัท/สังกัด สูงสุด</h3><svg id="cTopCo" viewBox="0 0 360 220" role="img"></svg></div>
+            </div>
+          </div>
         </div>
       </div>
     </details>
@@ -404,10 +436,56 @@ html[data-theme="dark"] .toast{color:#121519}
 </div>
 </div>
 
-<div class="toast" id="toast"></div>
+<style>
+/* chart tokens (light + dark) — validated CVD-safe WH/TRO pair */
+:root{ --c-wh:#3B5BDB; --c-tro:#087F5B; --sev-pos:#C1121F; --sev-elev:#C77900; --grid:rgba(43,52,64,.12); --data:#3B5BDB; }
+[data-theme="dark"]{ --c-wh:#5C7CFA; --c-tro:#0CA678; --sev-pos:#FF4D52; --sev-elev:#F0B03C; --grid:rgba(255,255,255,.12); --data:#5C7CFA; }
+.live-dot{font-family:var(--font-mono);font-size:11px;color:var(--c-tro);font-weight:700;animation:lblink 1.8s infinite}
+@keyframes lblink{0%,100%{opacity:1}50%{opacity:.4}}
+@media(prefers-reduced-motion:reduce){.live-dot{animation:none}}
+.kpi-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-bottom:14px}
+.kpi{background:var(--surface-2);border:1.5px solid var(--line);border-radius:10px;padding:11px 13px}
+.kpi.accent{border-left:4px solid var(--hazard)}
+.kpi .k{font-family:var(--font-mono);font-size:10px;letter-spacing:.5px;text-transform:uppercase;color:var(--muted)}
+.kpi .v{font-family:var(--font-display);font-weight:700;font-size:25px;line-height:1.1;margin-top:2px;font-variant-numeric:tabular-nums}
+.kpi .d{font-family:var(--font-mono);font-size:10.5px;color:var(--faint);margin-top:1px}
+.subseg{display:inline-flex;border:1.5px solid var(--line-strong);border-radius:8px;overflow:hidden;margin-bottom:14px}
+.subseg button{border:none;background:var(--surface);color:var(--muted);padding:8px 14px;font-family:var(--font-display);font-weight:600;font-size:13px;border-right:1.5px solid var(--line)}
+.subseg button:last-child{border-right:none}
+.subseg button.active{background:var(--hazard);color:#fff}
+.chart-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.chart-card{background:var(--surface-2);border:1.5px solid var(--line);border-radius:10px;padding:13px 14px}
+.chart-card.wide{grid-column:1 / -1}
+.chart-card h3{font-family:var(--font-display);font-weight:600;font-size:13.5px;margin:0 0 10px}
+.chart-card svg{display:block;width:100%;height:auto;overflow:visible}
+.donut-wrap{display:flex;gap:14px;align-items:center;flex-wrap:wrap;justify-content:center}
+.lg{display:flex;gap:14px;flex-wrap:wrap;font-family:var(--font-mono);font-size:11px;color:var(--muted);margin-top:8px}
+.lg.col{flex-direction:column;gap:8px}
+.lg span{display:inline-flex;align-items:center;gap:6px}
+.lg i{width:11px;height:11px;border-radius:3px;display:inline-block}
+@media(max-width:700px){.chart-grid{grid-template-columns:1fr}}
+.ctip{position:fixed;pointer-events:none;background:var(--ink);color:var(--surface);font-family:var(--font-mono);font-size:11px;padding:5px 8px;border-radius:6px;opacity:0;transition:opacity .1s;z-index:200;white-space:nowrap}
+</style>
 
+<div class="ctip" id="ctip"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script>
 "use strict";
+/* ============================================================================
+   ☁️ SUPABASE (Live Viewer / Analyst) — โปรเจกต์ alcohol-report-live
+   publishable key ปลอดภัยสำหรับฝั่งหน้าเว็บ (RLS ปิดกั้น: อ่านได้เฉพาะผู้ล็อกอิน)
+   ============================================================================ */
+const SUPA_URL = "https://saxwjyhgwloadcxjziqo.supabase.co";
+const SUPA_KEY = "sb_publishable_KaPFgPxSfK5EGIOn4vv88A_WrJom8vU";
+const SUPA_TABLE = "alcohol_reports";
+let supaClient = null, supaChannel = null;
+function supa(){
+  if(supaClient) return supaClient;
+  if(typeof window.supabase === "undefined") return null;   // CDN ยังไม่โหลด
+  supaClient = window.supabase.createClient(SUPA_URL, SUPA_KEY, { auth:{ persistSession:true, autoRefreshToken:true } });
+  return supaClient;
+}
 /* ============================================================================
    🔐 ADMIN AUTH — SHA-256 (เปลี่ยนรหัสได้ในแท็บ Security → สร้าง hash → วางแทนค่านี้)
    ============================================================================ */
@@ -610,25 +688,176 @@ function checkRoutes(){
    ============================================================================ */
 function fillReportCfg(){
   $("rc_sp").value=reportCfg.sp||""; $("rc_pbi").value=reportCfg.pbi||"";
-  $("sb_url").value=reportCfg.supaUrl||""; $("sb_table").value=reportCfg.supaTable||"alcohol_reports";
 }
 function openUrl(u){ if(!u||!/^https?:\/\//.test(u)){ toast("ยังไม่ได้ตั้ง URL",true); return; } window.open(u,"_blank","noopener"); }
-async function loadReports(){
-  const url=$("sb_url").value.trim().replace(/\/$/,""), table=$("sb_table").value.trim(); supaKey=$("sb_key").value.trim();
-  if(!url||!table||!supaKey){ toast("กรอก URL / table / key ให้ครบ",true); return; }
-  reportCfg.supaUrl=url; reportCfg.supaTable=table; save("alc_admin_reportcfg",reportCfg);
-  toast("กำลังโหลด…");
-  try{
-    const res=await fetch(`${url}/rest/v1/${encodeURIComponent(table)}?select=*&order=submittedAt.desc.nullslast&limit=1000`,{headers:{apikey:supaKey,Authorization:"Bearer "+supaKey}});
-    if(!res.ok) throw new Error("HTTP "+res.status);
-    reportRows=await res.json();
-    if(!Array.isArray(reportRows)) reportRows=[];
-    $("reportsArea").style.display="block";
-    const sf=$("fSite"); sf.innerHTML='<option value="">ทั้งหมด</option>'+[...new Set(reportRows.map(r=>r.site).filter(Boolean))].map(s=>`<option>${esc(s)}</option>`).join("");
-    renderReports();
-    toast(`โหลด ${reportRows.length} รายการ ✓`);
-  }catch(e){ toast("โหลดไม่สำเร็จ: "+e.message+" (ตรวจ RLS/CORS/key)",true); }
+/* ---- Supabase Auth + โหลดข้อมูล ---- */
+async function supaRestore(){
+  const c=supa(); if(!c) return;
+  try{ const { data } = await c.auth.getSession(); if(data && data.session){ onSignedIn(data.session); } }catch(_){}
 }
+async function supaSignIn(){
+  const c=supa();
+  if(!c){ $("sbAuthMsg").textContent="ไลบรารียังโหลดไม่เสร็จ ลองใหม่อีกครั้ง"; return; }
+  const email=$("sbEmail").value.trim(), password=$("sbPass").value;
+  if(!email||!password){ $("sbAuthMsg").textContent="กรอกอีเมลและรหัสผ่าน"; return; }
+  $("sbAuthMsg").textContent="กำลังเข้าสู่ระบบ…"; $("sbSignIn").disabled=true;
+  try{
+    const { data, error } = await c.auth.signInWithPassword({ email, password });
+    if(error) throw error;
+    $("sbPass").value=""; $("sbAuthMsg").textContent="";
+    onSignedIn(data.session);
+  }catch(e){ $("sbAuthMsg").innerHTML=`<span style="color:var(--hazard)">เข้าสู่ระบบไม่สำเร็จ: ${esc(e.message||"")}</span>`; }
+  finally{ $("sbSignIn").disabled=false; }
+}
+async function supaSignOut(){
+  const c=supa(); if(c) try{ await c.auth.signOut(); }catch(_){}
+  if(supaChannel){ try{ supa().removeChannel(supaChannel); }catch(_){} supaChannel=null; }
+  reportRows=[]; $("supaData").style.display="none"; $("supaAuth").style.display="block";
+}
+function onSignedIn(session){
+  const email=session && session.user ? session.user.email : "";
+  $("sbWho").textContent="● "+email;
+  $("supaAuth").style.display="none"; $("supaData").style.display="block";
+  supaLoad();
+  subscribeRealtime();
+}
+async function supaLoad(silent){
+  const c=supa(); if(!c) return;
+  if(!silent) toast("กำลังโหลดข้อมูล…");
+  const { data, error } = await c.from(SUPA_TABLE).select("*").order("inserted_at",{ ascending:false }).limit(2000);
+  if(error){ toast("โหลดไม่สำเร็จ: "+error.message,true); return; }
+  reportRows = Array.isArray(data) ? data : [];
+  const sf=$("fSite"); const cur=sf.value;
+  sf.innerHTML='<option value="">ทั้งหมด</option>'+[...new Set(reportRows.map(r=>r.site).filter(Boolean))].sort().map(s=>`<option>${esc(s)}</option>`).join("");
+  sf.value=cur;
+  applyLive();
+  if(!silent) toast(`โหลด ${reportRows.length} รายการ ✓`);
+}
+function subscribeRealtime(){
+  const c=supa(); if(!c || supaChannel) return;
+  try{
+    supaChannel = c.channel("alc-live")
+      .on("postgres_changes",{ event:"*", schema:"public", table:SUPA_TABLE }, ()=>supaLoad(true))
+      .subscribe();
+  }catch(_){}
+}
+/* render ทั้งตารางและกราฟตามฟิลเตอร์ปัจจุบัน */
+function applyLive(){ renderReports(); renderKpis(); renderAnalyst(); }
+
+/* ---- KPI ---- */
+function renderKpis(){
+  const rows=reportRows;
+  const today=new Date().toISOString().slice(0,10);
+  const wh=rows.filter(r=>r.personType==="general").length;
+  const tro=rows.filter(r=>r.personType==="transport").length;
+  const elev=rows.filter(r=>r.severity==="elevated").length;
+  const todayN=rows.filter(r=>r.testDate===today).length;
+  const tiles=[
+    ["ทั้งหมด",rows.length,"เคสในระบบ","accent"],
+    ["วันนี้",todayN,"testDate = วันนี้",""],
+    ["WH · ไซต์",wh,"พนักงานทั่วไป",""],
+    ["TRO · จัดส่ง",tro,"พนักงานขนส่ง",""],
+    ["เกินเกณฑ์",elev,rows.length?Math.round(elev/rows.length*100)+"% ของเคส":"—",""],
+  ];
+  $("kpiTiles").innerHTML=tiles.map(t=>`<div class="kpi ${t[3]}"><div class="k">${t[0]}</div><div class="v">${t[1]}</div><div class="d">${esc(String(t[2]))}</div></div>`).join("");
+}
+
+/* ---- chart helpers ---- */
+const CNS="http://www.w3.org/2000/svg";
+function cq(s){ return document.querySelector(s); }
+function cEl(n,a){ const e=document.createElementNS(CNS,n); for(const k in a) e.setAttribute(k,a[k]); return e; }
+function cCss(v){ return getComputedStyle(document.documentElement).getPropertyValue(v).trim(); }
+function cClear(sel){ const e=cq(sel); if(e) while(e.firstChild) e.removeChild(e.firstChild); return e; }
+function cTip(x,y,html){ const t=$("ctip"); t.innerHTML=html; t.style.left=(x+12)+"px"; t.style.top=(y+12)+"px"; t.style.opacity=1; }
+function cHide(){ $("ctip").style.opacity=0; }
+function strip(co){ return String(co||"").replace(/\s*\/\s*(WH|TRO)\s*$/,"").trim() || "—"; }
+function num(v){ if(v==null) return null; const s=String(v).trim(); if(/^hi$/i.test(s)) return "HI"; const n=parseInt(s,10); return isNaN(n)?null:n; }
+
+/* ---- Analyst ---- */
+function renderAnalyst(){
+  if($("viewAnalyst").style.display==="none") return;   // วาดเฉพาะตอนเปิดดู
+  const rows=filteredRows();
+  drawTrend(rows); drawBySite(rows); drawDonutType(rows); drawDonutSev(rows); drawHist(rows); drawTopCo(rows);
+}
+function drawTrend(rows){
+  const svg=cClear("#cTrend"); if(!svg) return;
+  const by={}; rows.forEach(r=>{ const m=String(r.testDate||"").slice(0,7); if(m) by[m]=(by[m]||0)+1; });
+  const months=Object.keys(by).sort().slice(-6); const W=720,H=220,pl=40,pr=16,pt=18,pb=34;
+  if(!months.length){ svg.appendChild(txt(W/2,H/2,"ยังไม่มีข้อมูล",cCss("--faint"),12,"middle")); return; }
+  const vals=months.map(m=>by[m]); const max=Math.max(...vals,1);
+  const xs=months.length>1?(W-pl-pr)/(months.length-1):0, y=v=>H-pb-(v/max)*(H-pt-pb);
+  for(let g=0;g<=3;g++){ const val=max*g/3, yy=y(val); svg.appendChild(cEl("line",{x1:pl,y1:yy,x2:W-pr,y2:yy,stroke:cCss("--grid"),"stroke-width":1})); svg.appendChild(txt(pl-6,yy+4,Math.round(val),cCss("--faint"),10,"end")); }
+  const pts=months.map((m,i)=>[pl+i*xs,y(by[m])]);
+  const line=pts.map((p,i)=>(i?"L":"M")+p[0]+" "+p[1]).join(" ");
+  svg.appendChild(cEl("path",{d:line+` L${pts[pts.length-1][0]} ${H-pb} L${pts[0][0]} ${H-pb} Z`,fill:cCss("--hazard"),opacity:.12}));
+  svg.appendChild(cEl("path",{d:line,fill:"none",stroke:cCss("--hazard"),"stroke-width":2.5,"stroke-linecap":"round","stroke-linejoin":"round"}));
+  months.forEach((m,i)=>{ const [px,py]=pts[i],last=i===months.length-1;
+    svg.appendChild(cEl("circle",{cx:px,cy:py,r:last?5:3.5,fill:last?cCss("--hazard"):cCss("--surface"),stroke:cCss("--hazard"),"stroke-width":2}));
+    svg.appendChild(txt(px,H-pb+20,m.slice(5),cCss("--muted"),10,"middle"));
+    const hit=cEl("rect",{x:px-(xs||W)/2,y:pt,width:xs||W,height:H-pt-pb,fill:"transparent"}); hit.style.cursor="pointer";
+    hit.addEventListener("mousemove",e=>cTip(e.clientX,e.clientY,`<b>${m}</b> · ${by[m]} เคส`)); hit.addEventListener("mouseleave",cHide); svg.appendChild(hit);
+  });
+}
+function drawBySite(rows){
+  const svg=cClear("#cBySite"); if(!svg) return;
+  const by={}; rows.forEach(r=>{ const s=r.site||"—"; (by[s]=by[s]||{wh:0,tro:0}); if(r.personType==="transport") by[s].tro++; else by[s].wh++; });
+  const sites=Object.keys(by).sort((a,b)=>(by[b].wh+by[b].tro)-(by[a].wh+by[a].tro));
+  const W=360,pl=70,pr=30,pt=6,rowH=Math.max(14,Math.min(22,Math.floor(240/Math.max(sites.length,1))-6)),gap=6,H=pt+sites.length*(rowH+gap)+2;
+  svg.setAttribute("viewBox",`0 0 ${W} ${H}`);
+  if(!sites.length){ svg.appendChild(txt(W/2,20,"ยังไม่มีข้อมูล",cCss("--faint"),12,"middle")); return; }
+  const max=Math.max(...sites.map(s=>by[s].wh+by[s].tro),1), xs=(W-pl-pr)/max;
+  sites.forEach((s,i)=>{ const yy=pt+i*(rowH+gap), wh=by[s].wh*xs, tro=by[s].tro*xs;
+    svg.appendChild(txt(pl-8,yy+rowH/2+4,s,cCss("--ink"),10.5,"end"));
+    const a=cEl("rect",{x:pl,y:yy,width:Math.max(wh,0.1),height:rowH,rx:3,fill:cCss("--c-wh")}); svg.appendChild(a);
+    const b=cEl("rect",{x:pl+wh+2,y:yy,width:Math.max(tro,0.1),height:rowH,rx:3,fill:cCss("--c-tro")}); svg.appendChild(b);
+    svg.appendChild(txt(pl+wh+tro+7,yy+rowH/2+4,by[s].wh+by[s].tro,cCss("--muted"),11,"start"));
+    a.style.cursor=b.style.cursor="pointer";
+    a.addEventListener("mousemove",e=>cTip(e.clientX,e.clientY,`<b>${s}</b> · WH ${by[s].wh}`)); a.addEventListener("mouseleave",cHide);
+    b.addEventListener("mousemove",e=>cTip(e.clientX,e.clientY,`<b>${s}</b> · TRO ${by[s].tro}`)); b.addEventListener("mouseleave",cHide);
+  });
+}
+function donut(sel,lgSel,segs){
+  const svg=cClear(sel); if(!svg) return;
+  const cx=80,cy=80,r=58,sw=22,C=2*Math.PI*r,tot=segs.reduce((a,s)=>a+s.v,0);
+  svg.appendChild(cEl("circle",{cx,cy,r,fill:"none",stroke:cCss("--line"),"stroke-width":sw}));
+  let off=0;
+  if(tot>0) segs.forEach(s=>{ if(s.v<=0) return; const len=s.v/tot*C, c=cEl("circle",{cx,cy,r,fill:"none",stroke:cCss(s.c),"stroke-width":sw,"stroke-dasharray":`${Math.max(len-2,0)} ${C-Math.max(len-2,0)}`,"stroke-dashoffset":-off,transform:`rotate(-90 ${cx} ${cy})`}); c.style.cursor="pointer"; c.addEventListener("mousemove",e=>cTip(e.clientX,e.clientY,`<b>${s.label}</b> · ${s.v} (${Math.round(s.v/tot*100)}%)`)); c.addEventListener("mouseleave",cHide); svg.appendChild(c); off+=len; });
+  svg.appendChild(txt(cx,cy-1,tot,cCss("--ink"),24,"middle","var(--font-display)",700));
+  svg.appendChild(txt(cx,cy+16,"เคสรวม",cCss("--muted"),10,"middle"));
+  if(lgSel){ const lg=$(lgSel); if(lg) lg.innerHTML=segs.map(s=>`<span><i style="background:${cCss(s.c)}"></i>${esc(s.label)} — ${s.v}${tot?` (${Math.round(s.v/tot*100)}%)`:""}</span>`).join(""); }
+}
+function drawDonutType(rows){ const wh=rows.filter(r=>r.personType==="general").length, tro=rows.filter(r=>r.personType==="transport").length; donut("#cDonutType","lgType",[{v:wh,c:"--c-wh",label:"WH · ไซต์"},{v:tro,c:"--c-tro",label:"TRO · จัดส่ง"}]); }
+function drawDonutSev(rows){ const pos=rows.filter(r=>r.severity!=="elevated").length, el=rows.filter(r=>r.severity==="elevated").length; donut("#cDonutSev","lgSev",[{v:pos,c:"--sev-pos",label:"ผลบวก"},{v:el,c:"--sev-elev",label:"เกินเกณฑ์"}]); }
+function drawHist(rows){
+  const svg=cClear("#cHist"); if(!svg) return;
+  const buckets=[["0–19",0],["20–29",0],["30–39",0],["40–49",0],["50+",0],["HI",0]];
+  rows.forEach(r=>{ const n=num(r.result1)!=null?num(r.result1):num(r.result2); if(n==="HI") buckets[5][1]++; else if(typeof n==="number"){ if(n<20)buckets[0][1]++; else if(n<30)buckets[1][1]++; else if(n<40)buckets[2][1]++; else if(n<50)buckets[3][1]++; else buckets[4][1]++; } });
+  vbars("#cHist",buckets,"--data");
+}
+function drawTopCo(rows){
+  const by={}; rows.forEach(r=>{ const c=strip(r.company); by[c]=(by[c]||0)+1; });
+  let arr=Object.entries(by).sort((a,b)=>b[1]-a[1]); const top=arr.slice(0,5); const rest=arr.slice(5).reduce((a,x)=>a+x[1],0); if(rest) top.push(["อื่น ๆ",rest]);
+  hbars("#cTopCo",top);
+}
+function vbars(sel,data,hue){
+  const svg=cClear(sel); if(!svg) return; const W=360,H=220,pl=32,pr=12,pt=16,pb=40;
+  const max=Math.max(...data.map(d=>d[1]),1),bw=(W-pl-pr)/data.length,barW=Math.min(bw*0.6,42),y=v=>H-pb-(v/max)*(H-pt-pb);
+  for(let g=0;g<=3;g++){ const val=max*g/3,yy=y(val); svg.appendChild(cEl("line",{x1:pl,y1:yy,x2:W-pr,y2:yy,stroke:cCss("--grid"),"stroke-width":1})); svg.appendChild(txt(pl-6,yy+4,Math.round(val),cCss("--faint"),10,"end")); }
+  data.forEach((d,i)=>{ const cx=pl+bw*i+bw/2,yy=y(d[1]); const rr=cEl("rect",{x:cx-barW/2,y:yy,width:barW,height:Math.max(H-pb-yy,0.1),rx:4,fill:cCss(hue||"--data")}); svg.appendChild(rr);
+    svg.appendChild(txt(cx,yy-6,d[1],cCss("--muted"),11,"middle")); svg.appendChild(txt(cx,H-pb+18,d[0],cCss("--muted"),10.5,"middle"));
+    rr.style.cursor="pointer"; rr.addEventListener("mousemove",e=>cTip(e.clientX,e.clientY,`<b>${d[0]}</b> · ${d[1]}`)); rr.addEventListener("mouseleave",cHide); });
+}
+function hbars(sel,data){
+  const svg=cClear(sel); if(!svg) return; const W=360,pl=120,pr=34,pt=8,rowH=26,gap=10,H=pt+data.length*(rowH+gap)+2;
+  svg.setAttribute("viewBox",`0 0 ${W} ${H}`);
+  if(!data.length){ svg.appendChild(txt(W/2,20,"ยังไม่มีข้อมูล",cCss("--faint"),12,"middle")); return; }
+  const max=Math.max(...data.map(d=>d[1]),1),xs=(W-pl-pr)/max;
+  data.forEach((d,i)=>{ const yy=pt+i*(rowH+gap),w=d[1]*xs; svg.appendChild(txt(pl-10,yy+rowH/2+4,d[0].length>16?d[0].slice(0,15)+"…":d[0],cCss("--ink"),11,"end","var(--font-body)"));
+    const rr=cEl("rect",{x:pl,y:yy,width:Math.max(w,0.1),height:rowH,rx:4,fill:cCss("--data")}); svg.appendChild(rr);
+    svg.appendChild(txt(pl+Math.max(w,0.1)+8,yy+rowH/2+4,d[1],cCss("--muted"),11,"start"));
+    rr.style.cursor="pointer"; rr.addEventListener("mousemove",e=>cTip(e.clientX,e.clientY,`<b>${esc(d[0])}</b> · ${d[1]} เคส`)); rr.addEventListener("mouseleave",cHide); });
+}
+function txt(x,y,t,fill,size,anchor,fam,weight){ const e=cEl("text",{x,y,fill,"font-size":size,"text-anchor":anchor||"start","font-family":fam||"var(--font-mono)"}); if(weight)e.setAttribute("font-weight",weight); e.textContent=t; return e; }
 const REPORT_COLS=[["caseId","เลขอ้างอิง"],["site","ไซต์"],["testDate","วันที่"],["fullName","ชื่อ"],["company","บริษัท"],["licensePlate","ทะเบียน"],["result1","ผล1"],["time1","เวลา1"],["result2","ผล2"],["time2","เวลา2"],["severity","สถานะ"],["reporter","ผู้รายงาน"],["photoUrl","รูป"],["submittedAt","ส่งเมื่อ"]];
 function filteredRows(){
   const site=$("fSite").value, from=$("fFrom").value, to=$("fTo").value, sev=$("fSev").value, q=$("fSearch").value.trim().toLowerCase();
@@ -710,9 +939,19 @@ function init(){
   $("openSp").onclick=()=>openUrl($("rc_sp").value.trim());
   $("openPbi").onclick=()=>openUrl($("rc_pbi").value.trim());
   $("saveReportCfg").onclick=()=>{ reportCfg.sp=$("rc_sp").value.trim(); reportCfg.pbi=$("rc_pbi").value.trim(); save("alc_admin_reportcfg",reportCfg); toast("จำ URL แล้ว ✓"); };
-  $("loadReports").onclick=loadReports;
-  ["fSite","fFrom","fTo","fSev","fSearch"].forEach(id=>$(id).addEventListener("input",renderReports));
+  $("sbSignIn").onclick=supaSignIn;
+  $("sbPass").addEventListener("keydown",e=>{ if(e.key==="Enter") supaSignIn(); });
+  $("sbSignOut").onclick=supaSignOut;
+  $("sbRefresh").onclick=()=>supaLoad();
+  ["fSite","fFrom","fTo","fSev","fSearch"].forEach(id=>$(id).addEventListener("input",applyLive));
   $("exportReportsCsv").onclick=exportReportsCsv;
+  // สลับมุมมอง ตาราง / วิเคราะห์
+  document.querySelectorAll("#liveSeg button").forEach(b=>b.onclick=()=>{
+    document.querySelectorAll("#liveSeg button").forEach(x=>x.classList.remove("active")); b.classList.add("active");
+    const v=b.dataset.view; $("viewTable").style.display=v==="table"?"block":"none"; $("viewAnalyst").style.display=v==="analyst"?"block":"none";
+    if(v==="analyst") renderAnalyst();
+  });
+  supaRestore();   // กู้เซสชัน Supabase ถ้าเคยล็อกอินในเครื่องนี้
 
   // security
   $("genHash").onclick=async()=>{ const p=$("newPw").value; if(!p){ toast("พิมพ์รหัสก่อน",true); return; } const h=await sha256(p); $("hashOut").textContent=`const PW_HASH = "${h}";`; $("hashOut").style.display="block"; $("copyHash").style.display="inline-flex"; };
