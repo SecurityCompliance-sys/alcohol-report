@@ -10,7 +10,7 @@
   style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
   font-src https://fonts.gstatic.com;
   img-src 'self' data: blob: https://res.cloudinary.com;
-  connect-src 'self' https://*.supabase.co;
+  connect-src 'self' https://*.supabase.co wss://*.supabase.co;
   base-uri 'self';
 ">
 <link rel="icon" type="image/svg+xml" href="favicon-admin.svg">
@@ -467,6 +467,7 @@ html[data-theme="dark"] .toast{color:#121519}
 .ctip{position:fixed;pointer-events:none;background:var(--ink);color:var(--surface);font-family:var(--font-mono);font-size:11px;padding:5px 8px;border-radius:6px;opacity:0;transition:opacity .1s;z-index:200;white-space:nowrap}
 </style>
 
+<div class="toast" id="toast"></div>
 <div class="ctip" id="ctip"></div>
 
 <!-- self-hosted (กันเครือข่ายองค์กรบล็อก CDN) — supabase-js v2 UMD -->
