@@ -304,10 +304,10 @@ html[data-theme="dark"] .toast{color:#121519}
         <div class="r"><button class="btn sm" id="addRoute">+ เพิ่มแถว</button></div>
       </div>
       <div class="card-body">
-        <div class="card-desc">แมป <b>ไซต์ → อีเมลผู้จัดการ</b> ข้อมูลนี้คือสิ่งที่ต้องใส่ใน SharePoint list <b>AlcoholTest_SiteRouting</b> (Power Automate อ่านจากตรงนั้น)</div>
+        <div class="card-desc">แมป <b>ไซต์ → อีเมลผู้จัดการ (2 สาย)</b> ข้อมูลนี้คือสิ่งที่ต้องใส่ใน SharePoint list <b>AlcoholTest_SiteRouting</b> (Power Automate อ่านจากตรงนั้น) · <b>SiteManagerEmail</b>=พนักงานทั่วไป (WH), <b>TROManagerEmail</b>=พนักงานขนส่ง (TRO)</div>
         <div class="tbl-wrap">
           <table id="routeTable">
-            <thead><tr><th>Site (Title)</th><th>ManagerEmail</th><th>CCEmail <span style="font-weight:400;color:var(--faint)">(คั่นด้วย ;)</span></th><th></th></tr></thead>
+            <thead><tr><th>Site (Title)</th><th>SiteManagerEmail <span style="font-weight:400;color:var(--faint)">(WH)</span></th><th>TROManagerEmail <span style="font-weight:400;color:var(--faint)">(TRO)</span></th><th>CCEmail <span style="font-weight:400;color:var(--faint)">(คั่นด้วย ;)</span></th><th></th></tr></thead>
             <tbody id="routeBody"></tbody>
           </table>
         </div>
@@ -563,7 +563,9 @@ function logout(){ sessionActive=false; supaKey=""; clearTimeout(idleTimer); $("
    ============================================================================ */
 function bootData(){
   cfg = Object.assign({}, DEFAULT_CFG, load("alc_admin_cfg",{}));
-  routes = load("alc_admin_routes", DEFAULT_CFG.sites.map(s=>({site:s,manager:"",cc:""})));
+  routes = load("alc_admin_routes", DEFAULT_CFG.sites.map(s=>({site:s,siteMgr:"",troMgr:"",cc:""})));
+  // migrate สคีมาเก่า {manager} → {siteMgr, troMgr}
+  routes = routes.map(r=>({ site:r.site||"", siteMgr:r.siteMgr!=null?r.siteMgr:(r.manager||""), troMgr:r.troMgr||"", cc:r.cc||"" }));
   reportCfg = load("alc_admin_reportcfg",{sp:"",pbi:"",supaUrl:"",supaTable:"alcohol_reports"});
   fillConfig(); renderSites(); renderRoutes(); fillReportCfg(); renderHealth();
 }
@@ -637,7 +639,7 @@ function renderHealth(){
     item(!!cfg.cloudName && !!cfg.uploadPreset,"Cloudinary") +
     `<span class="badge info">📍 ${cfg.sites.length} ไซต์</span>` +
     `<span class="badge info">🏢 ${(cfg.companies||[]).length} บริษัท</span>` +
-    `<span class="badge ${routes.filter(r=>r.manager).length===cfg.sites.length?'ok':'no'}">🗂️ ${routes.filter(r=>r.manager).length}/${cfg.sites.length} route</span>`;
+    `<span class="badge ${routes.filter(r=>r.siteMgr&&r.troMgr).length===cfg.sites.length?'ok':'no'}">🗂️ ${routes.filter(r=>r.siteMgr&&r.troMgr).length}/${cfg.sites.length} route</span>`;
 }
 function configBlock(){
   const ct = cfg.criticalThreshold==null ? "null" : Number(cfg.criticalThreshold);
@@ -662,11 +664,12 @@ function configBlock(){
 function siteOptions(sel){ return `<option value="">—</option>`+cfg.sites.map(s=>`<option value="${esc(s)}"${s===sel?" selected":""}>${esc(s)}</option>`).join(""); }
 function renderRoutes(){
   const tb=$("routeBody"); tb.innerHTML="";
-  if(!routes.length){ tb.innerHTML=`<tr><td colspan="4" class="empty">ยังไม่มีแถว — กด "เพิ่มแถว"</td></tr>`; return; }
+  if(!routes.length){ tb.innerHTML=`<tr><td colspan="5" class="empty">ยังไม่มีแถว — กด "เพิ่มแถว"</td></tr>`; return; }
   routes.forEach((r,i)=>{
     const tr=document.createElement("tr");
     tr.innerHTML=`<td><select data-i="${i}" data-k="site">${siteOptions(r.site)}</select></td>
-      <td><input data-i="${i}" data-k="manager" value="${esc(r.manager)}" placeholder="manager@bevchain.co.th"></td>
+      <td><input data-i="${i}" data-k="siteMgr" value="${esc(r.siteMgr)}" placeholder="site-manager@bevchain.co.th"></td>
+      <td><input data-i="${i}" data-k="troMgr" value="${esc(r.troMgr)}" placeholder="delivery-manager@bevchain.co.th"></td>
       <td><input data-i="${i}" data-k="cc" value="${esc(r.cc)}" placeholder="safety@bevchain.co.th;hr@..."></td>
       <td><button class="row-del" data-del="${i}">×</button></td>`;
     tb.appendChild(tr);
@@ -675,11 +678,11 @@ function renderRoutes(){
   tb.querySelectorAll("[data-del]").forEach(b=>b.onclick=()=>{ routes.splice(+b.dataset.del,1); renderRoutes(); });
 }
 function syncRouteSites(){ renderRoutes(); }
-function routesCsv(){ return "Title,ManagerEmail,CCEmail\n"+routes.filter(r=>r.site).map(r=>[r.site,r.manager,r.cc].map(csvCell).join(",")).join("\n"); }
+function routesCsv(){ return "Title,SiteManagerEmail,TROManagerEmail,CCEmail\n"+routes.filter(r=>r.site).map(r=>[r.site,r.siteMgr,r.troMgr,r.cc].map(csvCell).join(",")).join("\n"); }
 function checkRoutes(){
   const box=$("routeCheck"); const issues=[];
-  cfg.sites.forEach(s=>{ const r=routes.find(x=>x.site===s); if(!r||!r.manager) issues.push(`ไซต์ <b>${esc(s)}</b> ยังไม่มีอีเมลผู้จัดการ`); });
-  routes.forEach(r=>{ if(r.site && !cfg.sites.includes(r.site)) issues.push(`แถว <b>${esc(r.site)}</b> ไม่อยู่ในรายชื่อไซต์`); if(r.manager && !validEmails(r.manager)) issues.push(`อีเมลผู้จัดการของ <b>${esc(r.site||'?')}</b> รูปแบบไม่ถูก`); if(r.cc && !validEmails(r.cc)) issues.push(`CC ของ <b>${esc(r.site||'?')}</b> รูปแบบไม่ถูก`); });
+  cfg.sites.forEach(s=>{ const r=routes.find(x=>x.site===s); if(!r||!r.siteMgr) issues.push(`ไซต์ <b>${esc(s)}</b> ยังไม่มี SiteManagerEmail (WH)`); if(!r||!r.troMgr) issues.push(`ไซต์ <b>${esc(s)}</b> ยังไม่มี TROManagerEmail (TRO)`); });
+  routes.forEach(r=>{ if(r.site && !cfg.sites.includes(r.site)) issues.push(`แถว <b>${esc(r.site)}</b> ไม่อยู่ในรายชื่อไซต์`); if(r.siteMgr && !validEmails(r.siteMgr)) issues.push(`SiteManagerEmail ของ <b>${esc(r.site||'?')}</b> รูปแบบไม่ถูก`); if(r.troMgr && !validEmails(r.troMgr)) issues.push(`TROManagerEmail ของ <b>${esc(r.site||'?')}</b> รูปแบบไม่ถูก`); if(r.cc && !validEmails(r.cc)) issues.push(`CC ของ <b>${esc(r.site||'?')}</b> รูปแบบไม่ถูก`); });
   box.innerHTML = issues.length
     ? `<div class="warn"><span class="wic">⚠️</span><div>${issues.map(i=>"• "+i).join("<br>")}</div></div>`
     : `<div class="badge ok" style="display:inline-flex">✓ ครบและถูกต้องทุกไซต์</div>`;
@@ -939,7 +942,7 @@ function init(){
   $("copyCfg").onclick=()=>copyText($("cfgBlock").textContent);
 
   // routing
-  $("addRoute").onclick=()=>{ routes.push({site:"",manager:"",cc:""}); renderRoutes(); };
+  $("addRoute").onclick=()=>{ routes.push({site:"",siteMgr:"",troMgr:"",cc:""}); renderRoutes(); };
   $("saveRoutes").onclick=()=>{ save("alc_admin_routes",routes); renderHealth(); toast("บันทึกการส่งอีเมลแล้ว ✓"); };
   $("exportRoutesCsv").onclick=()=>download("AlcoholTest_SiteRouting.csv","\uFEFF"+routesCsv(),"text/csv;charset=utf-8");
   $("exportRoutesJson").onclick=()=>download("routing.json",JSON.stringify(routes,null,2),"application/json");
