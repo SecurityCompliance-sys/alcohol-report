@@ -32,7 +32,7 @@ const MAX_BYTES = 20000; // กันยิง payload ใหญ่ผิดป�
 const FIELD_MAX = {
   caseId: 40, site: 60, testDate: 10, personType: 12, fullName: 120,
   company: 120, licensePlate: 30, result1: 12, time1: 5, result2: 12,
-  time2: 5, severity: 12, photoUrl: 300, reporter: 120, notes: 600,
+  time2: 5, severity: 12, photoUrl: 300, photoUrl2: 300, reporter: 120, notes: 600,
   submittedAt: 40, userAgent: 200, appVersion: 20
 };
 
@@ -79,8 +79,12 @@ export default {
     // 5.1) photoUrl ต้องเป็นลิงก์ Cloudinary เท่านั้น — URL นี้กลายเป็นปุ่ม
     //      "ดูรูปหลักฐาน" ในอีเมลผู้จัดการ ถ้าไม่ล็อกโฮสต์ คนที่ถือ CLIENT_TOKEN
     //      ยิงตรงเข้า Worker แล้วสอดลิงก์ phishing ได้
-    if (!/^https:\/\/res\.cloudinary\.com\/[A-Za-z0-9/._~:?#\[\]@!$&()*+,;=%-]+$/.test(String(payload.photoUrl)))
+    const CLOUDINARY_RE = /^https:\/\/res\.cloudinary\.com\/[A-Za-z0-9/._~:?#\[\]@!$&()*+,;=%-]+$/;
+    if (!CLOUDINARY_RE.test(String(payload.photoUrl)))
       return json({ error: "invalid_photo_url" }, 422, cors);
+    // photoUrl2 มีได้หรือว่างก็ได้ (กรณีตรวจครั้งเดียว) แต่ถ้ามีต้องเป็นลิงก์ Cloudinary เท่านั้น
+    if (payload.photoUrl2 && !CLOUDINARY_RE.test(String(payload.photoUrl2)))
+      return json({ error: "invalid_photo_url2" }, 422, cors);
 
     if (!env.FLOW_URL || !env.FLOW_SECRET)
       return json({ error: "worker_not_configured" }, 500, cors);

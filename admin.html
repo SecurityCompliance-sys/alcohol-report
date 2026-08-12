@@ -882,7 +882,7 @@ function hbars(sel,data){
     rr.style.cursor="pointer"; rr.addEventListener("mousemove",e=>cTip(e.clientX,e.clientY,`<b>${esc(d[0])}</b> · ${d[1]} เคส`)); rr.addEventListener("mouseleave",cHide); });
 }
 function txt(x,y,t,fill,size,anchor,fam,weight){ const e=cEl("text",{x,y,fill,"font-size":size,"text-anchor":anchor||"start","font-family":fam||"var(--font-mono)"}); if(weight)e.setAttribute("font-weight",weight); e.textContent=t; return e; }
-const REPORT_COLS=[["caseId","เลขอ้างอิง"],["site","ไซต์"],["testDate","วันที่"],["fullName","ชื่อ"],["company","บริษัท"],["licensePlate","ทะเบียน"],["result1","ผล1"],["time1","เวลา1"],["result2","ผล2"],["time2","เวลา2"],["severity","สถานะ"],["reporter","ผู้รายงาน"],["photoUrl","รูป"],["submittedAt","ส่งเมื่อ"]];
+const REPORT_COLS=[["caseId","เลขอ้างอิง"],["site","ไซต์"],["testDate","วันที่"],["fullName","ชื่อ"],["company","บริษัท"],["licensePlate","ทะเบียน"],["result1","ผล1"],["time1","เวลา1"],["result2","ผล2"],["time2","เวลา2"],["severity","สถานะ"],["reporter","ผู้รายงาน"],["photoUrl","รูป1"],["photoUrl2","รูป2"],["submittedAt","ส่งเมื่อ"]];
 function filteredRows(){
   const site=$("fSite").value, from=$("fFrom").value, to=$("fTo").value, sev=$("fSev").value, q=$("fSearch").value.trim().toLowerCase();
   return reportRows.filter(r=>{
@@ -899,7 +899,8 @@ function renderReports(){
   const rows=filteredRows();
   $("reportsBody").innerHTML = rows.length ? rows.map(r=>"<tr>"+REPORT_COLS.map(([k])=>{
     let v=r[k];
-    if(k==="photoUrl" && v) return `<td><a href="${esc(v)}" target="_blank" rel="noopener" style="color:var(--hazard)">📷</a></td>`;
+    if((k==="photoUrl"||k==="photoUrl2") && v) return `<td><a href="${esc(v)}" target="_blank" rel="noopener" style="color:var(--hazard)">📷</a></td>`;
+    if((k==="photoUrl"||k==="photoUrl2") && !v) return `<td class="empty">—</td>`;
     if(k==="severity") return `<td><span class="badge ${v==='elevated'?'no':'info'}" style="padding:3px 8px">${esc(v||'')}</span></td>`;
     if((k==="result1"||k==="result2") && v && cfg.resultUnit && !/^hi$/i.test(String(v).trim())) v = `${v} ${cfg.resultUnit}`;
     return `<td class="${['caseId','testDate','licensePlate','result1','result2','time1','time2','submittedAt'].includes(k)?'mono':''}">${esc(v||'')}</td>`;

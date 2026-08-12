@@ -73,9 +73,10 @@
      @{if(equals(body('Parse_JSON')?['severity'],'elevated'), '<div style="background:#FBF0DD;border:1px solid #C77900;color:#8a5400;padding:10px 12px;font-size:13px;font-weight:bold;">⚠️ ค่าที่วัดได้สูงกว่าเกณฑ์ที่กำหนด</div>', '')}
    </td></tr>
 
-   <!-- photo button -->
+   <!-- photo buttons: รูปครั้งที่ 1 (เสมอ) + รูปครั้งที่ 2 (ถ้ามี) -->
    <tr><td style="padding:10px 22px 4px 22px;">
-     <a href="@{body('Parse_JSON')?['photoUrl']}" style="display:inline-block;background:#C1121F;color:#ffffff;text-decoration:none;padding:11px 20px;font-size:14px;font-weight:bold;border-radius:6px;">📷 ดูรูปหลักฐาน</a>
+     <a href="@{body('Parse_JSON')?['photoUrl']}" style="display:inline-block;background:#C1121F;color:#ffffff;text-decoration:none;padding:11px 20px;font-size:14px;font-weight:bold;border-radius:6px;margin-right:8px;">📷 รูปครั้งที่ 1</a>
+     @{if(empty(body('Parse_JSON')?['photoUrl2']),'',concat('<a href="',body('Parse_JSON')?['photoUrl2'],'" style="display:inline-block;background:#C1121F;color:#ffffff;text-decoration:none;padding:11px 20px;font-size:14px;font-weight:bold;border-radius:6px;">📷 รูปครั้งที่ 2</a>'))}
    </td></tr>
 
    <!-- action prompt -->

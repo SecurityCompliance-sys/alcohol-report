@@ -26,7 +26,8 @@ create table if not exists public.alcohol_reports (
   result2        text,
   time2          text,
   severity       text,                                   -- 'positive' | 'elevated'
-  "photoUrl"     text,
+  "photoUrl"     text,                                   -- รูปครั้งที่ 1
+  "photoUrl2"    text,                                   -- รูปครั้งที่ 2 (ว่างเมื่อตรวจครั้งเดียว)
   reporter       text,
   notes          text,
   "submittedAt"  text,                                   -- เวลาไทยอ่านง่ายจากฟอร์ม ("dd/mm/yyyy HH:mm น.") — เก็บเป็น text
@@ -80,6 +81,7 @@ create policy "authenticated read"
 --       "time2": "@{body('Parse_JSON')?['time2']}",
 --       "severity": "@{body('Parse_JSON')?['severity']}",
 --       "photoUrl": "@{body('Parse_JSON')?['photoUrl']}",
+--       "photoUrl2": "@{body('Parse_JSON')?['photoUrl2']}",
 --       "reporter": "@{body('Parse_JSON')?['reporter']}",
 --       "notes": "@{body('Parse_JSON')?['notes']}",
 --       "submittedAt": "@{body('Parse_JSON')?['submittedAt']}"
