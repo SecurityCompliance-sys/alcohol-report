@@ -541,22 +541,43 @@ html[data-theme="dark"] .toast-mini{color:#121519}
       <div class="sec-head"><div class="sec-num">04</div><div class="sec-title" data-i18n="s4">รูปภาพหลักฐาน</div></div>
       <div class="sec-body">
         <div class="field">
-          <div class="drop" id="drop">
+          <label class="lbl" data-i18n="f_photo1">รูปครั้งที่ 1 (ผล/เครื่องวัด)<span class="req">*</span></label>
+          <div class="drop" id="drop1">
             <div class="ic">📷</div>
             <div class="t" data-i18n="ph_t">แตะเพื่อถ่ายรูป หรือเลือกรูป</div>
             <div class="s" data-i18n="ph_s">ผลตรวจ / เครื่องวัด · JPG PNG · บีบอัดอัตโนมัติ</div>
-            <input type="file" id="photo" accept="image/*" capture="environment">
+            <input type="file" id="photo1" accept="image/*" capture="environment">
           </div>
-          <div class="preview" id="preview">
-            <img id="previewImg" alt="preview">
-            <div class="bar"><span id="previewInfo"></span><button type="button" class="rm" id="removePhoto" data-i18n="remove">ลบ</button></div>
+          <div class="preview" id="preview1">
+            <img id="previewImg1" alt="preview 1">
+            <div class="bar"><span id="previewInfo1"></span><button type="button" class="rm" id="removePhoto1" data-i18n="remove">ลบ</button></div>
           </div>
-          <div class="upstate" id="upstate">
-            <span class="spin" id="upSpin"></span>
-            <div class="progress"><i id="upBar"></i></div>
-            <span id="upText"></span>
+          <div class="upstate" id="upstate1">
+            <span class="spin" id="upSpin1"></span>
+            <div class="progress"><i id="upBar1"></i></div>
+            <span id="upText1"></span>
           </div>
-          <div class="err" id="err_photo" data-i18n="e_photo" style="margin-top:8px">กรุณาแนบรูปหลักฐาน</div>
+          <div class="err" id="err_photo1" data-i18n="e_photo" style="margin-top:8px">กรุณาแนบรูปหลักฐาน</div>
+        </div>
+
+        <div class="field" id="photo2Group" style="margin-top:16px">
+          <label class="lbl" data-i18n="f_photo2">รูปครั้งที่ 2 (ยืนยันซ้ำ)<span class="req">*</span></label>
+          <div class="drop" id="drop2">
+            <div class="ic">📷</div>
+            <div class="t" data-i18n="ph_t">แตะเพื่อถ่ายรูป หรือเลือกรูป</div>
+            <div class="s" data-i18n="ph_s">ผลตรวจ / เครื่องวัด · JPG PNG · บีบอัดอัตโนมัติ</div>
+            <input type="file" id="photo2" accept="image/*" capture="environment">
+          </div>
+          <div class="preview" id="preview2">
+            <img id="previewImg2" alt="preview 2">
+            <div class="bar"><span id="previewInfo2"></span><button type="button" class="rm" id="removePhoto2" data-i18n="remove">ลบ</button></div>
+          </div>
+          <div class="upstate" id="upstate2">
+            <span class="spin" id="upSpin2"></span>
+            <div class="progress"><i id="upBar2"></i></div>
+            <span id="upText2"></span>
+          </div>
+          <div class="err" id="err_photo2" data-i18n="e_photo" style="margin-top:8px">กรุณาแนบรูปหลักฐาน</div>
         </div>
       </div>
     </div>
@@ -609,7 +630,8 @@ html[data-theme="dark"] .toast-mini{color:#121519}
     </div>
     <div class="modal-body">
       <div id="reviewList"></div>
-      <img id="reviewPhoto" class="rev-photo" alt="evidence" style="display:none">
+      <img id="reviewPhoto" class="rev-photo" alt="evidence 1" style="display:none">
+      <img id="reviewPhoto2" class="rev-photo" alt="evidence 2" style="display:none;margin-top:8px">
       <button class="hold" id="holdBtn">
         <span class="fill" id="holdFill"></span>
         <span class="txt">🔒 <span data-i18n="hold_t">กดค้างเพื่อยืนยันส่ง</span></span>
@@ -677,6 +699,7 @@ const I18N = {
     f_r2:"ผลครั้งที่ 2 (ยืนยันซ้ำ)", f_t2:"เวลาตรวจครั้งที่ 2 (24 ชม.)",
     single_test:"ตรวจครั้งเดียว · ไม่มีการยืนยันซ้ำ (ผู้ถูกตรวจไม่รอตรวจครั้งที่ 2)", single_note:"⚠️ จะบันทึกว่า “ไม่ได้ตรวจครั้งที่ 2”", single_r2:"ไม่ได้ตรวจครั้งที่ 2 (ตรวจครั้งเดียว)",
     ph_t:"แตะเพื่อถ่ายรูป หรือเลือกรูป", ph_s:"ผลตรวจ / เครื่องวัด · JPG PNG · บีบอัดอัตโนมัติ", remove:"ลบ",
+    f_photo1:"รูปครั้งที่ 1 (ผล/เครื่องวัด)", f_photo2:"รูปครั้งที่ 2 (ยืนยันซ้ำ)",
     f_reporter:"เจ้าหน้าที่ รปภ. ผู้รายงาน", f_notes:"หมายเหตุเพิ่มเติม", optional:"(ไม่บังคับ)",
     clear:"ล้างฟอร์ม", review:"ตรวจสอบข้อมูล →",
     rev_t:"ตรวจสอบก่อนส่ง", hold_t:"กดค้างเพื่อยืนยันส่ง", hold_s:"กดค้างไว้ประมาณ 1 วินาที",
@@ -710,6 +733,7 @@ const I18N = {
     f_r2:"Reading #2 (confirmation)", f_t2:"Time of reading #2 (24h)",
     single_test:"Single test · no confirmation reading (subject did not wait for reading #2)", single_note:"⚠️ Will be recorded as “no second reading”", single_r2:"No second reading (single test)",
     ph_t:"Tap to take a photo or choose", ph_s:"Result / device · JPG PNG · auto-compressed", remove:"Remove",
+    f_photo1:"Reading #1 photo (result/device)", f_photo2:"Reading #2 photo (confirmation)",
     f_reporter:"Reporting security officer", f_notes:"Additional notes", optional:"(optional)",
     clear:"Clear form", review:"Review data →",
     rev_t:"Review before sending", hold_t:"Hold to confirm & send", hold_s:"Press and hold ~1 second",
@@ -741,8 +765,12 @@ let lang = (store && store.getItem("alc_lang")) || "th";
 // ธีมเริ่มต้นตามเครื่องผู้ใช้ (รปภ. ส่วนใหญ่ตรวจกลางคืน) — ค่าที่ผู้ใช้เลือกเองยังจำทับได้เหมือนเดิม
 let theme = (store && store.getItem("alc_theme")) ||
   (window.matchMedia && matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
-let photoUrl = "";          // Cloudinary secure_url หลังอัปโหลดสำเร็จ
-let uploading = false;      // true ระหว่างอัปโหลดรูป
+let photoUrl = "";          // Cloudinary secure_url รูปครั้งที่ 1
+let photoUrl2 = "";         // Cloudinary secure_url รูปครั้งที่ 2 (ว่างเมื่อตรวจครั้งเดียว)
+const uploadingSlots = {"1":false, "2":false};   // อัปโหลดค้างอยู่ของแต่ละช่อง
+function anyUploading(){ return uploadingSlots["1"] || uploadingSlots["2"]; }
+function getSlotUrl(s){ return s==="1"?photoUrl:photoUrl2; }
+function setSlotUrl(s,v){ if(s==="1") photoUrl=v; else photoUrl2=v; }
 let submitting = false;     // กันกดส่งซ้ำ
 let caseId = "";
 const DRAFT_KEY = "alc_draft", PENDING_KEY = "alc_pending";
@@ -840,9 +868,11 @@ function init(){
   $("testDatePicker").addEventListener("change", e => {
     if(e.target.value){ $("testDate").value = isoToDisplay(e.target.value); clearErr("testDate"); saveDraftDebounced(); }
   });
-  $("drop").onclick = () => $("photo").click();
-  $("photo").onchange = onPhotoPick;
-  $("removePhoto").onclick = clearPhoto;
+  ["1","2"].forEach(s=>{
+    $("drop"+s).onclick = () => $("photo"+s).click();
+    $("photo"+s).onchange = e => onPhotoPick(s, e);
+    $("removePhoto"+s).onclick = () => clearPhoto(s);
+  });
   $("form").onsubmit = onReview;
   $("clearBtn").onclick = () => { if(confirm(t("confirm_clear"))) clearForm(); };
   $("closeReview").onclick = () => toggleOverlay(false);
@@ -935,10 +965,12 @@ function onSingleTestToggle(){
   const on = $("singleTest").checked;
   $("secondReadingGroup").style.display = on ? "none" : "";   // .grid-2 มี display:grid — ใช้ inline ให้ซ่อนจริง
   $("singleNote").style.display = on ? "" : "none";
+  $("photo2Group").style.display = on ? "none" : "";           // ซ่อนช่องรูปครั้งที่ 2 ด้วย
   if(on){
     $("result2").value=""; $("time2").value="";
     const hb=document.querySelector('.hi-btn[data-target="result2"]'); if(hb) hb.setAttribute("aria-pressed","false");
     syncReading("result2"); clearErr("result2"); clearErr("time2");
+    clearPhoto("2"); clearErr("photo2");
   }
   updateSeverity(); saveDraftDebounced();
 }
@@ -1073,13 +1105,12 @@ function comboKeydown(e){
 /* ============================================================================
    PHOTO — compress (canvas) → upload to Cloudinary (unsigned) with progress
    ============================================================================ */
-function onPhotoPick(e){
+function onPhotoPick(slot, e){
   const file = e.target.files[0]; if(!file) return;
-  clearErr("photo");
-  const preview = $("preview"), img = $("previewImg");
-  const localUrl = URL.createObjectURL(file);
-  img.src = localUrl; preview.classList.add("show"); $("drop").style.display="none";
-  uploadFlow(file);
+  clearErr("photo"+slot);
+  $("previewImg"+slot).src = URL.createObjectURL(file);
+  $("preview"+slot).classList.add("show"); $("drop"+slot).style.display="none";
+  uploadFlow(slot, file);
 }
 function loadImage(file){ return new Promise((res,rej)=>{ const i=new Image(); i.onload=()=>res(i); i.onerror=rej; i.src=URL.createObjectURL(file); }); }
 async function compressImage(file){
@@ -1112,7 +1143,7 @@ function stampDateTime(ctx,width,height){
   ctx.fillStyle="#fff";
   ctx.fillText(text,x,height-padY-Math.round(fs*0.18));
 }
-function uploadToCloudinary(blob){
+function uploadToCloudinary(blob, slot){
   return new Promise((resolve,reject)=>{
     const fd=new FormData();
     fd.append("file",blob);
@@ -1120,36 +1151,36 @@ function uploadToCloudinary(blob){
     if(CONFIG.photoFolder) fd.append("folder",CONFIG.photoFolder);
     const xhr=new XMLHttpRequest();
     xhr.open("POST",`https://api.cloudinary.com/v1_1/${CONFIG.cloudinary.cloudName}/image/upload`);
-    xhr.upload.onprogress = ev => { if(ev.lengthComputable){ const pct=Math.round(ev.loaded/ev.total*100); $("upBar").style.width=pct+"%"; $("upText").textContent=t("up_uploading")+" "+pct+"%"; } };
+    xhr.upload.onprogress = ev => { if(ev.lengthComputable){ const pct=Math.round(ev.loaded/ev.total*100); $("upBar"+slot).style.width=pct+"%"; $("upText"+slot).textContent=t("up_uploading")+" "+pct+"%"; } };
     xhr.onload = () => { try{ const d=JSON.parse(xhr.responseText); if(xhr.status>=200&&xhr.status<300&&d.secure_url) resolve(d.secure_url); else reject(new Error(d.error?.message||"upload failed")); }catch(e){ reject(e); } };
     xhr.onerror = () => reject(new Error("network error"));
     xhr.send(fd);
   });
 }
-async function uploadFlow(file){
-  uploading=true; photoUrl="";
-  const us=$("upstate"); us.classList.add("show"); $("upSpin").style.display="inline-block"; $("upBar").style.width="0%";
-  $("upText").textContent=t("up_compress");
+async function uploadFlow(slot, file){
+  uploadingSlots[slot]=true; setSlotUrl(slot,"");
+  const us=$("upstate"+slot); us.classList.add("show"); $("upSpin"+slot).style.display="inline-block"; $("upBar"+slot).style.width="0%";
+  $("upText"+slot).textContent=t("up_compress");
   try{
     const blob = await compressImage(file);
     const kb = Math.round(blob.size/1024);
-    photoUrl = await uploadToCloudinary(blob);
-    $("upSpin").style.display="none"; $("upBar").style.width="100%";
-    $("upText").textContent=`✓ ${t("up_done")} · ${kb} KB`;
-    $("previewInfo").textContent = `${kb} KB · ✓`;
+    setSlotUrl(slot, await uploadToCloudinary(blob, slot));
+    $("upSpin"+slot).style.display="none"; $("upBar"+slot).style.width="100%";
+    $("upText"+slot).textContent=`✓ ${t("up_done")} · ${kb} KB`;
+    $("previewInfo"+slot).textContent = `${kb} KB · ✓`;
   }catch(err){
-    uploading=false;
-    $("upSpin").style.display="none";
-    $("upText").innerHTML = `<span style="color:var(--hazard)">✕ ${t("up_fail")}</span>`;
-    us.style.cursor="pointer"; us.onclick=()=>$("photo").click();
+    uploadingSlots[slot]=false;
+    $("upSpin"+slot).style.display="none";
+    $("upText"+slot).innerHTML = `<span style="color:var(--hazard)">✕ ${t("up_fail")}</span>`;
+    us.style.cursor="pointer"; us.onclick=()=>$("photo"+slot).click();
     return;
   }
-  uploading=false;
+  uploadingSlots[slot]=false;
 }
-function clearPhoto(){
-  photoUrl=""; uploading=false; $("photo").value="";
-  $("preview").classList.remove("show"); $("upstate").classList.remove("show");
-  $("drop").style.display="block";
+function clearPhoto(slot){
+  setSlotUrl(slot,""); uploadingSlots[slot]=false; $("photo"+slot).value="";
+  $("preview"+slot).classList.remove("show"); $("upstate"+slot).classList.remove("show");
+  $("drop"+slot).style.display="block";
 }
 
 /* ============================================================================
@@ -1210,7 +1241,9 @@ function validate(){
 
   // photo uploaded
   clearErr("photo");
-  if(!photoUrl){ $("err_photo").classList.add("show"); bad.push("photo"); ok=false; }
+  clearErr("photo1"); clearErr("photo2");
+  if(!photoUrl){ $("err_photo1").classList.add("show"); bad.push("photo1"); ok=false; }
+  if(!single && !photoUrl2){ $("err_photo2").classList.add("show"); bad.push("photo2"); ok=false; }
 
   if(bad.length){ const first=$(bad[0]); if(first && first.scrollIntoView) first.scrollIntoView({behavior:"smooth",block:"center"}); }
   return ok;
@@ -1241,6 +1274,7 @@ function collect(){
     time2: $("singleTest").checked ? "" : $("time2").value,
     severity: severityValue(),
     photoUrl,
+    photoUrl2: $("singleTest").checked ? "" : photoUrl2,
     reporter: sanitize($("reporter").value,120),
     notes: sanitize($("notes").value,600),
     submittedAt: nowDisplay(),
@@ -1254,7 +1288,7 @@ function collect(){
    ============================================================================ */
 function onReview(e){
   e.preventDefault();
-  if(uploading){ alert(t("alert_photo_wait")); return; }
+  if(anyUploading()){ alert(t("alert_photo_wait")); return; }
   if(!validate()) return;
   buildReview(collect());
   toggleOverlay(true);
@@ -1282,6 +1316,7 @@ function buildReview(d){
   html += row(rk.notes, d.notes);
   $("reviewList").innerHTML = html;
   if(d.photoUrl){ $("reviewPhoto").src=d.photoUrl; $("reviewPhoto").style.display="block"; } else $("reviewPhoto").style.display="none";
+  if(d.photoUrl2){ $("reviewPhoto2").src=d.photoUrl2; $("reviewPhoto2").style.display="block"; } else $("reviewPhoto2").style.display="none";
 }
 function toggleOverlay(show){ $("reviewOverlay").classList.toggle("show", show); document.body.style.overflow = show?"hidden":""; if(!show) resetHold(); }
 
@@ -1439,9 +1474,9 @@ function updateOnline(){
    CLEAR / RESET
    ============================================================================ */
 function clearForm(){
-  $("form").reset(); clearPhoto(); $("severity").className="severity";
+  $("form").reset(); clearPhoto("1"); clearPhoto("2"); $("severity").className="severity";
   ["site","testDate","fullName","company","plate","result1","time1","result2","time2","reporter"].forEach(clearErr);
-  $("err_ptype").classList.remove("show"); $("err_photo").classList.remove("show");
+  $("err_ptype").classList.remove("show"); $("err_photo1").classList.remove("show"); $("err_photo2").classList.remove("show");
   $("plateField").classList.remove("show");
   $("draftBanner").classList.remove("show");
   ["result1","result2"].forEach(id=>{ $(id).disabled=false; $(id).value=""; syncReading(id); });
